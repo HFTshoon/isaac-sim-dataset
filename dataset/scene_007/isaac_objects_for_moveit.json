@@ -1,0 +1,292 @@
+{
+  "object_root": "/objects",
+  "klt_prim_path": "/env/small_KLT",
+  "num_objects": 15,
+  "objects": [
+    {
+      "id": "obj_00_obj_005_tomato_soup_can",
+      "prim_path": "/objects/obj_00_obj_005_tomato_soup_can",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/005_tomato_soup_can.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.5140969753265381,
+        -0.11414725333452225,
+        0.07223134487867355
+      ],
+      "rotation_xyzw": [
+        0.434611445466933,
+        0.40542984546304167,
+        0.8029095040912494,
+        -0.045561607927084025
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_00_obj_005_tomato_soup_can.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_01_obj_024_bowl",
+      "prim_path": "/objects/obj_01_obj_024_bowl",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/024_bowl.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.6238577365875244,
+        -0.16251792013645172,
+        0.04250037670135498
+      ],
+      "rotation_xyzw": [
+        -0.5748291207375037,
+        0.40893421941161634,
+        -0.41306657976941796,
+        0.5759516358375549
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_01_obj_024_bowl.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_02_obj_008_pudding_box",
+      "prim_path": "/objects/obj_02_obj_008_pudding_box",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/008_pudding_box.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.4782405197620392,
+        -0.020509112626314163,
+        0.07935381680727005
+      ],
+      "rotation_xyzw": [
+        0.668270114865722,
+        0.5165838032392024,
+        -0.49449545424869545,
+        0.20501334965229073
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_02_obj_008_pudding_box.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_03_obj_009_gelatin_box",
+      "prim_path": "/objects/obj_03_obj_009_gelatin_box",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/009_gelatin_box.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.3849448561668396,
+        0.1535002589225769,
+        0.037672627717256546
+      ],
+      "rotation_xyzw": [
+        -0.04223030104150772,
+        -0.07171177080627955,
+        -0.2735224635725315,
+        0.9582585692405701
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_03_obj_009_gelatin_box.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_04_obj_002_master_chef_can",
+      "prim_path": "/objects/obj_04_obj_002_master_chef_can",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/002_master_chef_can.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.4008046090602875,
+        -0.13456526398658752,
+        0.06608422100543976
+      ],
+      "rotation_xyzw": [
+        -0.08841022665709719,
+        -0.18890275955798022,
+        -0.4275128926244124,
+        0.8796204328536987
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_04_obj_002_master_chef_can.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_05_obj_010_potted_meat_can",
+      "prim_path": "/objects/obj_05_obj_010_potted_meat_can",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/010_potted_meat_can.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.606196939945221,
+        0.282558411359787,
+        0.042371924966573715
+      ],
+      "rotation_xyzw": [
+        0.9899615665135981,
+        -0.14088144720137125,
+        0.0019968030937854105,
+        -0.011159186251461296
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_05_obj_010_potted_meat_can.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_06_obj_040_large_marker",
+      "prim_path": "/objects/obj_06_obj_040_large_marker",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/040_large_marker.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.2775121331214905,
+        -0.0606805682182312,
+        0.024717431515455246
+      ],
+      "rotation_xyzw": [
+        0.044243945064604155,
+        -0.20639498540849285,
+        0.20202540658721455,
+        0.9563625454902649
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_06_obj_040_large_marker.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_07_obj_051_large_clamp",
+      "prim_path": "/objects/obj_07_obj_051_large_clamp",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/051_large_clamp.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.297728568315506,
+        0.04984154552221298,
+        0.03935663029551506
+      ],
+      "rotation_xyzw": [
+        -0.06758939003719608,
+        -0.061977762134338296,
+        0.8046150242745219,
+        0.5866729021072389
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_07_obj_051_large_clamp.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_08_obj_037_scissors",
+      "prim_path": "/objects/obj_08_obj_037_scissors",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/037_scissors.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.39112287759780884,
+        0.09324739128351212,
+        0.02276591956615448
+      ],
+      "rotation_xyzw": [
+        -0.009981313853399546,
+        0.007727613730534574,
+        0.928376632989586,
+        0.371426284313202
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_08_obj_037_scissors.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_09_obj_021_bleach_cleanser",
+      "prim_path": "/objects/obj_09_obj_021_bleach_cleanser",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/021_bleach_cleanser.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.3963787853717804,
+        0.19731086492538452,
+        0.07561073452234268
+      ],
+      "rotation_xyzw": [
+        -0.16529645448679708,
+        -0.14594577880611706,
+        -0.360717815114922,
+        0.9062337279319763
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_09_obj_021_bleach_cleanser.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_10_obj_035_power_drill",
+      "prim_path": "/objects/obj_10_obj_035_power_drill",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/035_power_drill.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.5288035869598389,
+        0.10785963386297226,
+        0.042026493698358536
+      ],
+      "rotation_xyzw": [
+        -0.018848289097526272,
+        0.0039438756452026364,
+        0.7747906823791515,
+        -0.6319245100021363
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_10_obj_035_power_drill.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_11_obj_007_tuna_fish_can",
+      "prim_path": "/objects/obj_11_obj_007_tuna_fish_can",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/007_tuna_fish_can.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.2420906126499176,
+        -0.08535537123680115,
+        0.05675123259425163
+      ],
+      "rotation_xyzw": [
+        0.06804056083271826,
+        -0.33157022302353684,
+        0.28660509727333816,
+        0.8962640166282654
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_11_obj_007_tuna_fish_can.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_12_obj_036_wood_block",
+      "prim_path": "/objects/obj_12_obj_036_wood_block",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/036_wood_block.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.2825802266597748,
+        -0.21196001768112183,
+        0.11813913285732269
+      ],
+      "rotation_xyzw": [
+        0.05503450755595072,
+        0.7035862509625477,
+        0.7062631548254865,
+        0.055945925414562184
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_12_obj_036_wood_block.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_13_obj_006_mustard_bottle",
+      "prim_path": "/objects/obj_13_obj_006_mustard_bottle",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/006_mustard_bottle.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.3738125264644623,
+        0.029442213475704193,
+        0.08312025666236877
+      ],
+      "rotation_xyzw": [
+        -0.661739591082542,
+        -0.25493548131410143,
+        0.6949365143748347,
+        -0.11904560029506703
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_13_obj_006_mustard_bottle.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_14_obj_052_extra_large_clamp",
+      "prim_path": "/objects/obj_14_obj_052_extra_large_clamp",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/052_extra_large_clamp.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.46785998344421387,
+        0.07586744427680969,
+        0.08291251212358475
+      ],
+      "rotation_xyzw": [
+        -0.06769049815381409,
+        -0.02996960095636498,
+        0.891081341479946,
+        0.4477654099464416
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_14_obj_052_extra_large_clamp.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    }
+  ]
+}

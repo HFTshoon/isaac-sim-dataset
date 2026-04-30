@@ -1,0 +1,338 @@
+#usda 1.0
+(
+    defaultPrim = "objects"
+)
+
+def Xform "objects"
+{
+    def Xform "obj_00_obj_037_scissors" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/037_scissors.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (25.179693, 27.873734, 3.82381)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.008005515, 0.0031156011, 0.0091662435)
+        quatf xformOp:orient = (0.63216597, -0.028548837, 0.05709885, 0.7721989)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.5258020162582397, 0.09840893000364304, 0.02324826456606388)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_37_scissors" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_01_obj_005_tomato_soup_can" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/005_tomato_soup_can.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-5.3388715, 11.170272, -7.380399)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.010285167, 0.0044795433, -0.0005827445)
+        quatf xformOp:orient = (0.64721215, -0.12509567, 0.7458391, 0.09587336)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.4242100715637207, 0.007714357692748308, 0.04816973954439163)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_05_tomato_soup_can" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_02_obj_025_mug" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/025_mug.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-4.9432945, -8.268124, 2.1727815)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.022599692, 0.0056667775, -0.015285795)
+        quatf xformOp:orient = (-0.5263703, 0.022443853, -0.03232677, 0.84934425)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.3666919469833374, 0.15631406009197235, 0.057850636541843414)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_25_mug" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_03_obj_004_sugar_box" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/004_sugar_box.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (0.42655408, -0.58453685, 0.84459627)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.00201946, -0.00025822344, -0.00032557195)
+        quatf xformOp:orient = (0.96825165, 0.009035892, 0.0008108277, 0.24981324)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.32137662172317505, -0.08793520927429199, 0.036531634628772736)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_04_sugar_box" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_04_obj_021_bleach_cleanser" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/021_bleach_cleanser.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (3.3132045, -1.6554097, -2.5404365)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.0011785968, -0.0009149288, -0.0032934577)
+        quatf xformOp:orient = (0.6423941, -0.3422816, -0.16510355, -0.66551787)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.5121449828147888, -0.08871124684810638, 0.08484753966331482)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_21_bleach_cleanser" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_05_obj_010_potted_meat_can" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/010_potted_meat_can.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (6.1777735, 3.1515276, -7.1694746)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.009338968, -0.0028564134, -0.00073125656)
+        quatf xformOp:orient = (-0.16616005, -0.8964294, 0.37684366, 0.16368818)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.228041410446167, 0.02418743446469307, 0.06293484568595886)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_10_potted_meat_can" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_06_obj_011_banana" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/011_banana.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (1.7518764, 23.838999, -1.9090213)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.0119274855, 0.0054363827, -0.00069606106)
+        quatf xformOp:orient = (0.43585745, -0.5324156, -0.56651413, 0.45345744)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.17452025413513184, 0.0014445073902606964, 0.030398722738027573)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_11_banana" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_07_obj_036_wood_block" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/036_wood_block.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-0.56472236, -0.18832397, 0.116319016)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.001939023, 0.0000921358, -0.0019680315)
+        quatf xformOp:orient = (0.68953604, -0.15431987, 0.6926114, 0.1449651)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.6476397514343262, 0.19099625945091248, 0.05868574231863022)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_36_wood_block" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_08_obj_061_foam_brick" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/061_foam_brick.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (0.7234805, 11.553492, -5.9419494)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.0017845632, 0.0016977479, 0.00032190644)
+        quatf xformOp:orient = (0.31479055, -0.27054134, -0.05071397, 0.9083735)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.3927132487297058, -0.1842254400253296, 0.08713699877262115)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_61_foam_brick" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_09_obj_024_bowl" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/024_bowl.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (7.8450813, 13.777612, 14.35553)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.007065227, -0.0024103317, -0.0099743)
+        quatf xformOp:orient = (0.015111582, -0.3342361, 0.509574, 0.7927119)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.2852698266506195, 0.10995292663574219, 0.08087863773107529)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_24_bowl" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_10_obj_035_power_drill" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/035_power_drill.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (0.5174765, -0.6202816, -0.4917097)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.00078888074, -0.00057269, -0.0007779764)
+        quatf xformOp:orient = (-0.6006782, 0.027852926, 0.028378624, 0.7985017)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.4941532015800476, -0.15508438646793365, 0.04021640494465828)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_35_power_drill" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_11_obj_040_large_marker" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/040_large_marker.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-4.056117, 12.573778, 0.04853391)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (0.001867383, 0.00058381597, -0.00031422425)
+        quatf xformOp:orient = (-0.98374087, -0.0049955426, 0.003744128, -0.17948578)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.23594820499420166, 0.16635754704475403, 0.02445123717188835)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_40_large_marker" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_12_obj_003_cracker_box" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/003_cracker_box.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-9.750659, -23.0996, 2.149076)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.031972464, 0.00889179, -0.0038865781)
+        quatf xformOp:orient = (0.57069594, 0.12099098, 0.22742116, 0.7797096)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.4705676734447479, 0.16212128102779388, 0.10123281180858612)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_03_cracker_box" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_13_obj_019_pitcher_base" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/019_pitcher_base.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-0.07920378, 0.027503118, 0.03584477)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.00037038507, 0.0021615305, -0.00031699458)
+        quatf xformOp:orient = (-0.5038195, -0.20633492, -0.16005062, 0.82339287)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.30698588490486145, -0.24972040951251984, 0.06845522671937943)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_19_pitcher_base" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_14_obj_008_pudding_box" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/008_pudding_box.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (2.515091, 0.49117225, -7.7362113)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.00451596, -0.0033635604, -0.0001154889)
+        quatf xformOp:orient = (-0.7459587, 0.41152516, -0.2793488, 0.44289604)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.3479474186897278, -0.005306127015501261, 0.06078917533159256)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_08_pudding_box" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+}
+
