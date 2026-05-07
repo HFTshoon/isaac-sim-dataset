@@ -1,0 +1,45 @@
+{
+  "object_root": "/objects",
+  "klt_prim_path": "/env/small_KLT",
+  "num_objects": 2,
+  "objects": [
+    {
+      "id": "obj_02_obj_009_gelatin_box",
+      "prim_path": "/objects/obj_02_obj_009_gelatin_box",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/009_gelatin_box.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.5503730177879333,
+        -0.10885012149810791,
+        0.044305093586444855
+      ],
+      "rotation_xyzw": [
+        -0.5109125229823119,
+        0.5276666709398214,
+        0.4973518424164857,
+        -0.46171140670776367
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_02_obj_009_gelatin_box.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    },
+    {
+      "id": "obj_14_obj_010_potted_meat_can",
+      "prim_path": "/objects/obj_14_obj_010_potted_meat_can",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/010_potted_meat_can.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.8270285725593567,
+        -0.26149219274520874,
+        0.05714457854628563
+      ],
+      "rotation_xyzw": [
+        -0.5138027349224359,
+        0.07870926219652845,
+        0.8345429975585335,
+        0.1826186925172807
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/0bj_14_obj_010_potted_meat_can.obj",
+      "note": "Fill moveit_mesh_path later, e.g. package://my_scene_meshes/meshes/ycb/object.obj"
+    }
+  ]
+}

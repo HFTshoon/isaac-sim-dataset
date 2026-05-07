@@ -1,0 +1,1203 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary cameraSettings = {
+            dictionary Front = {
+                double3 position = (5, 0, 0)
+                double radius = 5
+            }
+            dictionary Perspective = {
+                double3 position = (2.026562266854412, 1.8358186587358882, 0.716255030119787)
+                double3 target = (0.15705805427108221, -0.033685553847440985, 0.07541306347998245)
+            }
+            dictionary Right = {
+                double3 position = (0, -5, 0)
+                double radius = 5
+            }
+            dictionary Top = {
+                double3 position = (0, 0, 5)
+                double radius = 5
+            }
+            string boundCamera = "/Franka/panda_hand/FrankaCamera"
+        }
+        dictionary omni_layer = {
+            string authoring_layer = "./sample.usda"
+            dictionary locked = {
+            }
+            dictionary muteness = {
+            }
+        }
+        dictionary physicsSettings = {
+            int "/persistent/simulation/minFrameRate" = 60
+        }
+        dictionary renderSettings = {
+        }
+    }
+    endTimeCode = 1000000
+    metersPerUnit = 1
+    startTimeCode = 0
+    timeCodesPerSecond = 60
+    upAxis = "Z"
+)
+
+def "Render" (
+    hide_in_stage_window = true
+    no_delete = true
+)
+{
+    def "OmniverseKit"
+    {
+        def "HydraTextures" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_0" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </cameras/sceneCamera>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:dlss:frameGeneration = 0
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "performance"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                uint omni:rtx:viewTile:limit = 4294967295
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_1" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:dlss:frameGeneration = 0
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "performance"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                uint omni:rtx:viewTile:limit = 4294967295
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                custom string ogPostProcessPath = "/Render/OmniverseKit/HydraTextures/Replicator/PostRender"
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = [
+                    </Render/Vars/DistanceToImagePlaneSD>,
+                    </Render/Vars/LdrColorSD>,
+                    </Render/Vars/LdrColor>,
+                ]
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_01" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                custom string ogPostProcessPath = "/Render/OmniverseKit/HydraTextures/Replicator_01/PostRender"
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = [
+                    </Render/Vars/DistanceToImagePlaneSD>,
+                    </Render/Vars/LdrColorSD>,
+                    </Render/Vars/LdrColor>,
+                ]
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_02" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                custom string ogPostProcessPath = "/Render/OmniverseKit/HydraTextures/Replicator_02/PostRender"
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = [
+                    </Render/Vars/DistanceToImagePlaneSD>,
+                    </Render/Vars/LdrColorSD>,
+                    </Render/Vars/LdrColor>,
+                ]
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_03" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_04" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                custom string ogPostProcessPath = "/Render/OmniverseKit/HydraTextures/Replicator_04/PostRender"
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = [
+                    </Render/Vars/LdrColorSD>,
+                    </Render/Vars/DistanceToImagePlaneSD>,
+                    </Render/Vars/LdrColor>,
+                ]
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_05" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                custom string ogPostProcessPath = "/Render/OmniverseKit/HydraTextures/Replicator_05/PostRender"
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = [
+                    </Render/Vars/DistanceToImagePlaneSD>,
+                    </Render/Vars/LdrColorSD>,
+                    </Render/Vars/LdrColor>,
+                ]
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_06" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                custom string ogPostProcessPath = "/Render/OmniverseKit/HydraTextures/Replicator_06/PostRender"
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = [
+                    </Render/Vars/LdrColorSD>,
+                    </Render/Vars/DistanceToImagePlaneSD>,
+                    </Render/Vars/LdrColor>,
+                ]
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_07" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_08" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                custom string ogPostProcessPath = "/Render/OmniverseKit/HydraTextures/Replicator_08/PostRender"
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = [
+                    </Render/Vars/LdrColorSD>,
+                    </Render/Vars/DistanceToImagePlaneSD>,
+                    </Render/Vars/LdrColor>,
+                ]
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_09" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator_10" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </Franka/panda_hand/FrankaCamera>
+                bool omni:rtx:material:db:syncLoads = 1
+                bool omni:rtx:rt:ecoMode:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+        }
+    }
+
+    def RenderSettings "OmniverseGlobalRenderSettings" (
+        prepend apiSchemas = ["OmniRtxSettingsGlobalRtAdvancedAPI_1", "OmniRtxSettingsGlobalPtAdvancedAPI_1"]
+        no_delete = true
+    )
+    {
+        rel products = [
+            </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0>,
+            </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_1>,
+            </Render/OmniverseKit/HydraTextures/Replicator>,
+            </Render/OmniverseKit/HydraTextures/Replicator_01>,
+            </Render/OmniverseKit/HydraTextures/Replicator_02>,
+            </Render/OmniverseKit/HydraTextures/Replicator_03>,
+            </Render/OmniverseKit/HydraTextures/Replicator_04>,
+            </Render/OmniverseKit/HydraTextures/Replicator_05>,
+            </Render/OmniverseKit/HydraTextures/Replicator_06>,
+            </Render/OmniverseKit/HydraTextures/Replicator_07>,
+            </Render/OmniverseKit/HydraTextures/Replicator_08>,
+            </Render/OmniverseKit/HydraTextures/Replicator_09>,
+            </Render/OmniverseKit/HydraTextures/Replicator_10>,
+        ]
+    }
+
+    def "Vars"
+    {
+        def RenderVar "LdrColor" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            uniform string sourceName = "LdrColor"
+        }
+    }
+}
+
+def Xform "Franka" (
+    kind = "assembly"
+    prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Robots/FrankaRobotics/FrankaPanda/franka.usd@
+    variants = {
+        string Gripper = "AlternateFinger"
+        string Mesh = "Quality"
+    }
+)
+{
+    string isaac:namespace (
+        displayName = "Namespace"
+        doc = "Namespace of the prim in Isaac Sim"
+    )
+    quatd xformOp:orient = (1, 0, 0, 0)
+    double3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, 0, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    over "panda_link0"
+    {
+        over "panda_joint1"
+        {
+            float state:angular:physics:position = 0
+            float state:angular:physics:velocity = 0
+        }
+    }
+
+    over "panda_link1"
+    {
+        over "panda_joint2"
+        {
+            float state:angular:physics:position = 0
+            float state:angular:physics:velocity = 0
+        }
+    }
+
+    over "panda_link2"
+    {
+        over "panda_joint3"
+        {
+            float state:angular:physics:position = 0
+            float state:angular:physics:velocity = 0
+        }
+    }
+
+    over "panda_link3"
+    {
+        over "panda_joint4"
+        {
+            float state:angular:physics:position = 0
+            float state:angular:physics:velocity = 0
+        }
+    }
+
+    over "panda_link4"
+    {
+        string isaac:nameOverride (
+            displayName = "Name Override"
+            doc = "Name override for prim lookup in base name search"
+        )
+
+        over "panda_joint5"
+        {
+            float state:angular:physics:position = 0
+            float state:angular:physics:velocity = 0
+        }
+    }
+
+    over "panda_link5"
+    {
+        over "panda_joint6"
+        {
+            float state:angular:physics:position = 0
+            float state:angular:physics:velocity = 0
+        }
+    }
+
+    over "panda_link6"
+    {
+        over "panda_joint7"
+        {
+            float state:angular:physics:position = 0
+            float state:angular:physics:velocity = 0
+        }
+    }
+
+    over "panda_link7"
+    {
+    }
+
+    over "panda_hand"
+    {
+        string isaac:nameOverride (
+            displayName = "Name Override"
+            doc = "Name override for prim lookup in base name search"
+        )
+
+        over "panda_finger_joint1"
+        {
+            float state:linear:physics:position = 0
+            float state:linear:physics:velocity = 0
+        }
+
+        over "panda_finger_joint2"
+        {
+            float state:linear:physics:position = 0
+            float state:linear:physics:velocity = 0
+        }
+
+        def Camera "FrankaCamera"
+        {
+            token cameraProjectionType = "pinholeOpenCV" (
+                allowedTokens = ["pinhole", "pinholeOpenCV", "fisheyePolynomial", "fisheyeSpherical", "fisheyeKannalaBrandtK3", "fisheyeOpenCV", "fisheyeRadTanThinPrism", "omniDirectionalStereo", "generalizedProjection"]
+            )
+            float2 clippingRange = (0.01, 10000000)
+            float focalLength = 14.841337
+            float focusDistance = 400
+            float fthetaCx = 640
+            float fthetaCy = 360
+            float fthetaHeight = 720
+            float fthetaPolyB = 0
+            float fthetaPolyD = 0
+            float fthetaWidth = 1280
+            bool omni:kit:cameraLock = 1
+            custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -49.76446049576964)
+            float openCVFx = 906.46204
+            float openCVFy = 906.65283
+            float p0 = 0
+            float p1 = 0
+            float s0 = 0
+            float s1 = 0
+            float s2 = 0
+            float s3 = 0
+            float verticalAperture = 11.787188
+            token visibility = "invisible"
+            quatd xformOp:orient = (6.123233995736766e-17, 0.7071067811865475, 0.7071067811865476, 5.84905016044406e-25)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0.09232899999999998, 0.0030812599999999954, 0.06221550000000009)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+        }
+    }
+
+    over "panda_leftfinger"
+    {
+    }
+
+    over "panda_rightfinger"
+    {
+        string isaac:nameOverride (
+            displayName = "Name Override"
+            doc = "Name override for prim lookup in base name search"
+        )
+    }
+}
+
+def Xform "background" (
+    kind = "assembly"
+    prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Environments/Simple_Room/simple_room.usd@
+)
+{
+    token visibility = "inherited"
+    quatd xformOp:orient = (1, 0, 0, 0)
+    double3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, 0, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    over "table_low_327" (
+        active = true
+    )
+    {
+        token visibility = "inherited"
+        double3 xformOp:rotateZYX = (0, 0, 90)
+        double3 xformOp:translate = (0.3, 0, -0.7695999827980996)
+
+        over "table_low" (
+            active = true
+        )
+        {
+            float3 xformOp:scale = (0.01, 0.01, 0.01)
+        }
+    }
+}
+
+def PhysicsScene "physicsScene" (
+    prepend apiSchemas = ["PhysxSceneAPI"]
+)
+{
+    vector3f physics:gravityDirection = (0, 0, -1)
+    float physics:gravityMagnitude = 9.81
+    uniform token physxScene:broadphaseType = "MBP"
+    bool physxScene:enableCCD = 1
+    bool physxScene:enableGPUDynamics = 0
+    bool physxScene:enableStabilization = 0
+    uniform token physxScene:solverType = "TGS"
+    uint physxScene:timeStepsPerSecond = 60
+}
+
+def OmniGraph "ActionGraph"
+{
+    token evaluationMode = "Automatic"
+    token evaluator:type = "execution"
+    token fabricCacheBacking = "StageWithoutHistory"
+    int2 fileFormatVersion = (1, 9)
+    token pipelineStage = "pipelineStageSimulation"
+
+    def OmniGraphNode "OnPlaybackTick" (
+        prepend apiSchemas = ["NodeGraphNodeAPI"]
+    )
+    {
+        token node:type = "omni.graph.action.OnPlaybackTick"
+        int node:typeVersion = 2
+        custom double outputs:deltaSeconds
+        custom double outputs:frame
+        custom uint outputs:tick (
+            customData = {
+                bool isExecution = 1
+            }
+        )
+        custom double outputs:time
+        uniform token ui:nodegraph:node:expansionState = "open"
+    }
+
+    def OmniGraphNode "ReadSimTime" (
+        prepend apiSchemas = ["NodeGraphNodeAPI"]
+    )
+    {
+        custom uint64 inputs:referenceTimeDenominator
+        custom int64 inputs:referenceTimeNumerator
+        custom bool inputs:resetOnStop
+        token node:type = "isaacsim.core.nodes.IsaacReadSimulationTime"
+        int node:typeVersion = 1
+        custom double outputs:simulationTime
+        uniform token ui:nodegraph:node:expansionState = "open"
+    }
+
+    def OmniGraphNode "Context" (
+        prepend apiSchemas = ["NodeGraphNodeAPI"]
+    )
+    {
+        custom uchar inputs:domain_id
+        custom bool inputs:useDomainIDEnvVar
+        token node:type = "isaacsim.ros2.bridge.ROS2Context"
+        int node:typeVersion = 2
+        custom uint64 outputs:context
+        uniform token ui:nodegraph:node:expansionState = "open"
+    }
+
+    def OmniGraphNode "PublishJointState" (
+        prepend apiSchemas = ["NodeGraphNodeAPI"]
+    )
+    {
+        custom uint64 inputs:context
+        prepend uint64 inputs:context.connect = </ActionGraph/Context.outputs:context>
+        custom uint inputs:execIn (
+            customData = {
+                bool isExecution = 1
+            }
+        )
+        prepend uint inputs:execIn.connect = </ActionGraph/OnPlaybackTick.outputs:tick>
+        custom string inputs:nodeNamespace
+        custom string inputs:qosProfile
+        custom uint64 inputs:queueSize
+        custom rel inputs:targetPrim = </Franka> (
+            customData = {
+                dictionary omni = {
+                    dictionary graph = {
+                        string relType = "target"
+                    }
+                }
+            }
+        )
+        custom double inputs:timeStamp
+        prepend double inputs:timeStamp.connect = </ActionGraph/ReadSimTime.outputs:simulationTime>
+        custom string inputs:topicName = "isaac_joint_states"
+        token node:type = "isaacsim.ros2.bridge.ROS2PublishJointState"
+        int node:typeVersion = 1
+        uniform token ui:nodegraph:node:expansionState = "open"
+    }
+
+    def OmniGraphNode "SubscribeJointState" (
+        prepend apiSchemas = ["NodeGraphNodeAPI"]
+    )
+    {
+        custom uint64 inputs:context
+        prepend uint64 inputs:context.connect = </ActionGraph/Context.outputs:context>
+        custom uint inputs:execIn (
+            customData = {
+                bool isExecution = 1
+            }
+        )
+        prepend uint inputs:execIn.connect = </ActionGraph/OnPlaybackTick.outputs:tick>
+        custom string inputs:nodeNamespace
+        custom string inputs:qosProfile
+        custom uint64 inputs:queueSize
+        custom string inputs:topicName = "isaac_joint_commands"
+        token node:type = "isaacsim.ros2.bridge.ROS2SubscribeJointState"
+        int node:typeVersion = 2
+        custom double[] outputs:effortCommand
+        custom uint outputs:execOut (
+            customData = {
+                bool isExecution = 1
+            }
+        )
+        custom token[] outputs:jointNames
+        custom double[] outputs:positionCommand
+        custom double outputs:timeStamp
+        custom double[] outputs:velocityCommand
+        uniform token ui:nodegraph:node:expansionState = "open"
+    }
+
+    def OmniGraphNode "ArticulationController" (
+        prepend apiSchemas = ["NodeGraphNodeAPI"]
+    )
+    {
+        custom double[] inputs:effortCommand
+        prepend double[] inputs:effortCommand.connect = </ActionGraph/SubscribeJointState.outputs:effortCommand>
+        custom uint inputs:execIn (
+            customData = {
+                bool isExecution = 1
+            }
+        )
+        prepend uint inputs:execIn.connect = </ActionGraph/OnPlaybackTick.outputs:tick>
+        custom int[] inputs:jointIndices
+        custom token[] inputs:jointNames
+        prepend token[] inputs:jointNames.connect = </ActionGraph/SubscribeJointState.outputs:jointNames>
+        custom double[] inputs:positionCommand
+        prepend double[] inputs:positionCommand.connect = </ActionGraph/SubscribeJointState.outputs:positionCommand>
+        custom string inputs:robotPath = "/Franka"
+        custom rel inputs:targetPrim (
+            customData = {
+                dictionary omni = {
+                    dictionary graph = {
+                        string relType = "target"
+                    }
+                }
+            }
+        )
+        custom double[] inputs:velocityCommand
+        prepend double[] inputs:velocityCommand.connect = </ActionGraph/SubscribeJointState.outputs:velocityCommand>
+        token node:type = "isaacsim.core.nodes.IsaacArticulationController"
+        int node:typeVersion = 1
+        uniform token ui:nodegraph:node:expansionState = "open"
+    }
+
+    def OmniGraphNode "PublishClock" (
+        prepend apiSchemas = ["NodeGraphNodeAPI"]
+    )
+    {
+        custom uint64 inputs:context
+        prepend uint64 inputs:context.connect = </ActionGraph/Context.outputs:context>
+        custom uint inputs:execIn (
+            customData = {
+                bool isExecution = 1
+            }
+        )
+        prepend uint inputs:execIn.connect = </ActionGraph/OnPlaybackTick.outputs:tick>
+        custom string inputs:nodeNamespace
+        custom string inputs:qosProfile
+        custom uint64 inputs:queueSize
+        custom double inputs:timeStamp
+        prepend double inputs:timeStamp.connect = </ActionGraph/ReadSimTime.outputs:simulationTime>
+        custom string inputs:topicName
+        token node:type = "isaacsim.ros2.bridge.ROS2PublishClock"
+        int node:typeVersion = 1
+        uniform token ui:nodegraph:node:expansionState = "open"
+    }
+}
+
+def Scope "env" (
+    active = true
+)
+{
+    def "small_KLT" (
+        active = true
+        instanceable = false
+        prepend payload = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/KLT_Bin/small_KLT.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-0.36458936, -0.35795543, 0.15853165)
+        vector3f physics:velocity = (-0.0027728695, 0.0019372299, -0.0034848666)
+        token visibility = "invisible"
+        quatf xformOp:orient = (0.9999995, -5.9553366e-7, 0.0000068728145, -0.0010492081)
+        float3 xformOp:scale = (2.5, 2.5, 1)
+        double3 xformOp:translate = (0.4003439247608185, 0.0023497201036661863, 0.08958683907985687)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "Collision"
+        {
+            token visibility = "invisible"
+
+            over "Cube"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_01"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_02"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_03"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_04"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_05"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_06"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_07"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+
+            over "Cube_08"
+            {
+                bool physics:collisionEnabled = 0
+                token visibility = "invisible"
+            }
+        }
+
+        over "Visuals"
+        {
+            token visibility = "invisible"
+
+            over "Looks"
+            {
+                token visibility = "invisible"
+            }
+
+            over "FOF_Mesh_Label_1"
+            {
+                token visibility = "invisible"
+            }
+
+            over "FOF_Mesh_Label_6_Small"
+            {
+                token visibility = "invisible"
+            }
+
+            over "FOF_Mesh_Magenta_Box"
+            {
+                token visibility = "invisible"
+            }
+        }
+
+        over "DomeLight"
+        {
+            token visibility = "invisible"
+        }
+    }
+}
+
+def Scope "cameras"
+{
+    token visibility = "inherited"
+
+    def Camera "sceneCamera" (
+        hide_in_stage_window = false
+        no_delete = false
+    )
+    {
+        float4[] clippingPlanes = []
+        float2 clippingRange = (0.01, 10000000)
+        float exposure = 0
+        float focalLength = 18.147562
+        float focusDistance = 400
+        float fStop = 0
+        float horizontalAperture = 20.955
+        float horizontalApertureOffset = 0
+        bool omni:kit:cameraLock = 1
+        custom vector3d omni:kit:centerOfInterest = (0, 0, -6.409580077843136)
+        token projection = "perspective"
+        uniform token purpose = "default"
+        double shutter:close = 0
+        double shutter:open = 0
+        uniform token stereoRole = "mono"
+        float verticalAperture = 15.2908
+        float verticalApertureOffset = 0
+        token visibility = "invisible"
+        float3 xformOp:rotateYXZ = (54.400223, 5.463746e-15, -134.55307)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-1.425128554897901, 1.6535355582691331, 1.847035357813694)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateYXZ", "xformOp:scale"]
+    }
+}
+
+def "World"
+{
+    def OmniGraph "ActionGraph_Camera"
+    {
+        token evaluationMode = "Automatic"
+        token evaluator:type = "execution"
+        token fabricCacheBacking = "StageWithoutHistory"
+        int2 fileFormatVersion = (1, 9)
+        token pipelineStage = "pipelineStageSimulation"
+
+        def OmniGraphNode "OnPlaybackTick"
+        {
+            token node:type = "omni.graph.action.OnPlaybackTick"
+            int node:typeVersion = 2
+            custom double outputs:deltaSeconds
+            custom double outputs:frame
+            custom uint outputs:tick (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            custom double outputs:time
+        }
+
+        def OmniGraphNode "CameraInfoPublish"
+        {
+            custom uint64 inputs:context
+            prepend uint64 inputs:context.connect = </World/ActionGraph_Camera/Context.outputs:context>
+            custom bool inputs:enabled
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ActionGraph_Camera/RenderProduct.outputs:execOut>
+            custom string inputs:frameId = "franka_camera"
+            custom string inputs:frameIdRight
+            custom uint inputs:frameSkipCount
+            custom string inputs:nodeNamespace = "camera"
+            custom string inputs:qosProfile
+            custom uint64 inputs:queueSize
+            custom token inputs:renderProductPath
+            prepend token inputs:renderProductPath.connect = </World/ActionGraph_Camera/RenderProduct.outputs:renderProductPath>
+            custom token inputs:renderProductPathRight
+            custom bool inputs:resetSimulationTimeOnStop = 1
+            custom string inputs:topicName = "camera_info"
+            custom string inputs:topicNameRight
+            custom bool inputs:useSystemTime
+            token node:type = "isaacsim.ros2.bridge.ROS2CameraInfoHelper"
+            int node:typeVersion = 1
+        }
+
+        def OmniGraphNode "RenderProduct"
+        {
+            custom rel inputs:cameraPrim = </Franka/panda_hand/FrankaCamera> (
+                customData = {
+                    dictionary omni = {
+                        dictionary graph = {
+                            string relType = "target"
+                        }
+                    }
+                }
+            )
+            custom bool inputs:enabled
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ActionGraph_Camera/RunOnce.outputs:step>
+            custom uint inputs:height
+            custom uint inputs:width
+            token node:type = "isaacsim.core.nodes.IsaacCreateRenderProduct"
+            int node:typeVersion = 2
+            custom uint outputs:execOut (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            custom token outputs:renderProductPath
+        }
+
+        def OmniGraphNode "RunOnce"
+        {
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ActionGraph_Camera/OnPlaybackTick.outputs:tick>
+            token node:type = "isaacsim.core.nodes.OgnIsaacRunOneSimulationFrame"
+            int node:typeVersion = 1
+            custom uint outputs:step (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+        }
+
+        def OmniGraphNode "Context"
+        {
+            custom uchar inputs:domain_id
+            custom bool inputs:useDomainIDEnvVar
+            token node:type = "isaacsim.ros2.bridge.ROS2Context"
+            int node:typeVersion = 2
+            custom uint64 outputs:context
+        }
+
+        def OmniGraphNode "RGBPublish"
+        {
+            custom uint64 inputs:context
+            prepend uint64 inputs:context.connect = </World/ActionGraph_Camera/Context.outputs:context>
+            custom bool inputs:enabled
+            custom bool inputs:enableSemanticLabels
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ActionGraph_Camera/RenderProduct.outputs:execOut>
+            custom string inputs:frameId = "franka_camera"
+            custom uint inputs:frameSkipCount
+            custom string inputs:nodeNamespace = "camera"
+            custom string inputs:qosProfile
+            custom uint64 inputs:queueSize
+            custom token inputs:renderProductPath
+            prepend token inputs:renderProductPath.connect = </World/ActionGraph_Camera/RenderProduct.outputs:renderProductPath>
+            custom bool inputs:resetSimulationTimeOnStop = 1
+            custom string inputs:semanticLabelsTopicName
+            custom float2 inputs:stereoOffset
+            custom string inputs:topicName = "/rgb"
+            custom token inputs:type = "rgb" (
+                allowedTokens = ["rgb", "depth", "depth_pcl", "instance_segmentation", "semantic_segmentation", "bbox_2d_tight", "bbox_2d_loose", "bbox_3d"]
+            )
+            custom bool inputs:useSystemTime
+            custom token inputs:viewport
+            token node:type = "isaacsim.ros2.bridge.ROS2CameraHelper"
+            int node:typeVersion = 2
+        }
+
+        def OmniGraphNode "DepthPublish"
+        {
+            custom uint64 inputs:context
+            prepend uint64 inputs:context.connect = </World/ActionGraph_Camera/Context.outputs:context>
+            custom bool inputs:enabled
+            custom bool inputs:enableSemanticLabels
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ActionGraph_Camera/RenderProduct.outputs:execOut>
+            custom string inputs:frameId = "franka_camera"
+            custom uint inputs:frameSkipCount
+            custom string inputs:nodeNamespace = "camera"
+            custom string inputs:qosProfile
+            custom uint64 inputs:queueSize
+            custom token inputs:renderProductPath
+            prepend token inputs:renderProductPath.connect = </World/ActionGraph_Camera/RenderProduct.outputs:renderProductPath>
+            custom bool inputs:resetSimulationTimeOnStop = 1
+            custom string inputs:semanticLabelsTopicName
+            custom float2 inputs:stereoOffset
+            custom string inputs:topicName = "/depth"
+            custom token inputs:type = "depth" (
+                allowedTokens = ["rgb", "depth", "depth_pcl", "instance_segmentation", "semantic_segmentation", "bbox_2d_tight", "bbox_2d_loose", "bbox_3d"]
+            )
+            custom bool inputs:useSystemTime
+            custom token inputs:viewport
+            token node:type = "isaacsim.ros2.bridge.ROS2CameraHelper"
+            int node:typeVersion = 2
+        }
+    }
+}
+
+def Scope "objects"
+{
+    def Xform "obj_036_wood_block" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_036_wood_block>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.81035215, 0.0046486626, 0.002653883, -0.5859187)
+        double3 xformOp:translate = (0.4259856343269348, -0.10326989740133286, 0.059850092977285385)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_037_scissors" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_037_scissors>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.21777216, 0.10824653, 0.8294513, -0.50286025)
+        double3 xformOp:translate = (0.42228394746780396, 0.24398072063922882, 0.0959186851978302)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_052_extra_large_clamp" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_052_extra_large_clamp>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.6297488, 0.73996687, -0.23554315, -0.019618185)
+        double3 xformOp:translate = (0.4652419090270996, 0.2078000009059906, 0.06926586478948593)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_025_mug" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_025_mug>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.97515225, -0.035376515, 0.2178748, 0.01889868)
+        double3 xformOp:translate = (0.4873632490634918, -0.27623850107192993, 0.051911428570747375)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_035_power_drill" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_035_power_drill>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.97299707, -0.0723612, 0.022408986, 0.21803302)
+        double3 xformOp:translate = (0.39973121881484985, 0.08519770205020905, 0.05724995955824852)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_019_pitcher_base" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_019_pitcher_base>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.6295773, -0.23536974, 0.16815057, 0.7210818)
+        double3 xformOp:translate = (0.3561438024044037, 0.10833742469549179, 0.13440345227718353)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_002_master_chef_can" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_002_master_chef_can>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.5602955, 0.25293496, -0.19557473, 0.76409644)
+        double3 xformOp:translate = (0.2642937898635864, -0.1740824580192566, 0.06570210307836533)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_008_pudding_box" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_008_pudding_box>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.0072457762, 0.94584817, -0.016922753, -0.32408693)
+        double3 xformOp:translate = (0.5504032373428345, 0.2571657598018646, 0.06127532944083214)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_040_large_marker" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_040_large_marker>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (-0.6929068, 0.04241913, 0.04197178, 0.71855354)
+        double3 xformOp:translate = (0.2817430794239044, -0.07399613410234451, 0.024428779259324074)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_007_tuna_fish_can" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_007_tuna_fish_can>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (-0.20928507, 0.08496865, -0.0031839323, 0.9741509)
+        double3 xformOp:translate = (0.5636652112007141, 0.032216329127550125, 0.05620605871081352)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_004_sugar_box" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_004_sugar_box>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.40406162, 0.54451466, 0.65556747, -0.3323692)
+        double3 xformOp:translate = (0.5015616416931152, -0.1926853060722351, 0.06303416192531586)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_005_tomato_soup_can" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_005_tomato_soup_can>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.09868417, 0.22823355, -0.028460808, 0.968174)
+        double3 xformOp:translate = (0.2759842872619629, 0.09349814802408218, 0.04798061028122902)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_061_foam_brick" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_061_foam_brick>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.51880103, 0.5260089, -0.48373502, -0.46921268)
+        double3 xformOp:translate = (0.22043438255786896, -0.009340931661427021, 0.04034443199634552)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_051_large_clamp" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_051_large_clamp>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (-0.07837408, 0.021204023, 0.068608865, 0.9943343)
+        double3 xformOp:translate = (0.3948136568069458, -0.010337295942008495, 0.03343068063259125)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Xform "obj_010_potted_meat_can" (
+        prepend apiSchemas = ["PhysxRigidBodyAPI"]
+        prepend references = @/isaac-sim/corl2025/dataset/01/scene_000/isaac_objects.usda@</objects/obj_010_potted_meat_can>
+    )
+    {
+        float physxRigidBody:sleepThreshold = 0
+        quatf xformOp:orient = (0.2077866, -0.44702974, 0.25123462, 0.8329888)
+        double3 xformOp:translate = (0.28454315662384033, -0.06389324367046356, 0.08069953322410583)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+}
+

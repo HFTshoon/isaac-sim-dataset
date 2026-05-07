@@ -1,0 +1,52 @@
+#usda 1.0
+(
+    defaultPrim = "objects"
+)
+
+def Xform "objects"
+{
+    def Xform "obj_02_obj_009_gelatin_box" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/009_gelatin_box.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (1.1833937, 5.475974, 0.008337237)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.0018580928, -0.0022815694, -0.004960277)
+        quatf xformOp:orient = (0.4617114, 0.5109126, -0.52766675, -0.4973519)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.5503730177879333, -0.10885012149810791, 0.044305093586444855)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_09_gelatin_box" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+
+    def Xform "obj_14_obj_010_potted_meat_can" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI"]
+        prepend references = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/010_potted_meat_can.usd@
+    )
+    {
+        vector3f physics:angularVelocity = (-3.9784474, 1.4730587, -2.3095176)
+        bool physics:rigidBodyEnabled = 1
+        vector3f physics:velocity = (-0.0010315019, 0.00054846297, -0.0008746867)
+        quatf xformOp:orient = (0.18261869, -0.51380277, 0.07870927, 0.83454305)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.8270285725593567, -0.26149219274520874, 0.05714457854628563)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "_10_potted_meat_can" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+        )
+        {
+            uniform token physics:approximation = "convexHull"
+            bool physics:collisionEnabled = 1
+        }
+    }
+}
+
