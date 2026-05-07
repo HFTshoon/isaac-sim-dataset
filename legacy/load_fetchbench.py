@@ -26,8 +26,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
-from grasp import run_ik_planned_grasp_demo
-from utils_data import (
+from legacy.grasp import run_ik_planned_grasp_demo
+from legacy.utils_data import (
     extract_import_path,
     read_scene_yaml,
     remap_asset_root,
@@ -35,8 +35,8 @@ from utils_data import (
     sanitize_prim_name,
     to_pose,
 )
-from utils_math import quat_multiply_xyzw, quat_normalize_xyzw
-from utils_sim import (
+from legacy.utils_math import quat_multiply_xyzw, quat_normalize_xyzw
+from legacy.utils_sim import (
     count_descendants,
     find_articulation_root_prim,
     find_robot_hand_prim,
@@ -44,7 +44,7 @@ from utils_sim import (
     hide_collision_geometry,
     set_prim_pose,
 )
-from utils_urdf import get_urdf_robot_name, top_level_path
+from legacy.utils_urdf import get_urdf_robot_name, top_level_path
 
 def _enable_extension(ext_name: str) -> None:
 	import omni.kit.app

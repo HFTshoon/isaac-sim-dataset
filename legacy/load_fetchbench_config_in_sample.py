@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
-from utils_data import (
+from legacy.utils_data import (
 	extract_import_path,
 	read_scene_yaml,
 	remap_asset_root,
@@ -31,7 +31,7 @@ from utils_data import (
 	sanitize_prim_name,
 	to_pose,
 )
-from utils_sim import get_prim_world_pose, set_prim_pose
+from legacy.utils_sim import get_prim_world_pose, set_prim_pose
 
 
 def _enable_extension(ext_name: str) -> None:

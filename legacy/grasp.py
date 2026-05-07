@@ -9,8 +9,8 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from utils_math import quat_multiply_xyzw, quat_normalize_xyzw
-from utils_sim import (
+from legacy.utils_math import quat_multiply_xyzw, quat_normalize_xyzw
+from legacy.utils_sim import (
     aabbs_overlap,
     find_articulation_root_prim,
     find_robot_hand_prim,
