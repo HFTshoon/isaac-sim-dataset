@@ -1,0 +1,293 @@
+{
+  "target_object": "obj_006_mustard_bottle",
+  "target_object_prim_path": "/objects/obj_006_mustard_bottle",
+  "object_root": "/objects",
+  "num_objects": 15,
+  "objects": [
+    {
+      "id": "obj_006_mustard_bottle",
+      "prim_path": "/objects/obj_006_mustard_bottle",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/006_mustard_bottle.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.36348456144332886,
+        -0.17455269396305084,
+        0.11067746579647064
+      ],
+      "rotation_xyzw": [
+        0.06270726408179242,
+        -0.699796016651129,
+        0.7087776601727682,
+        -0.06314714998006819
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/006_mustard_bottle.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_003_cracker_box_01",
+      "prim_path": "/objects/obj_003_cracker_box_01",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/003_cracker_box.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.17816734313964844,
+        -0.24262842535972595,
+        0.05002506077289581
+      ],
+      "rotation_xyzw": [
+        0.0065586005878478125,
+        0.00645424077467298,
+        0.955774334022636,
+        0.29395705461502075
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/003_cracker_box_01.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_004_sugar_box_02",
+      "prim_path": "/objects/obj_004_sugar_box_02",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/004_sugar_box.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.3040148615837097,
+        -0.5209153294563293,
+        0.03686279430985451
+      ],
+      "rotation_xyzw": [
+        0.9989249345883455,
+        0.044090666475101396,
+        -0.0029657906899996102,
+        0.014006865210831155
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/004_sugar_box_02.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_008_pudding_box_03",
+      "prim_path": "/objects/obj_008_pudding_box_03",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/008_pudding_box.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        1.0323057174682617,
+        0.07841473817825317,
+        0.033651720732450485
+      ],
+      "rotation_xyzw": [
+        0.0020682761984255307,
+        0.0253614009077121,
+        -0.5289400596444552,
+        0.8482776284217836
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/008_pudding_box_03.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_051_large_clamp_04",
+      "prim_path": "/objects/obj_051_large_clamp_04",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/051_large_clamp.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.274534672498703,
+        -0.06384366005659103,
+        0.03347226604819298
+      ],
+      "rotation_xyzw": [
+        -0.03716149372153988,
+        -0.01111009085688696,
+        0.9095282390725956,
+        -0.4138284325599671
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/051_large_clamp_04.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_052_extra_large_clamp_05",
+      "prim_path": "/objects/obj_052_extra_large_clamp_05",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/052_extra_large_clamp.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.14379991590976715,
+        -0.256609171628952,
+        0.1028551235795021
+      ],
+      "rotation_xyzw": [
+        0.9822006745629883,
+        0.18262624254726256,
+        -0.03769071057353694,
+        0.02255882881581774
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/052_extra_large_clamp_05.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_019_pitcher_base_06",
+      "prim_path": "/objects/obj_019_pitcher_base_06",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/019_pitcher_base.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.6783307790756226,
+        0.39311474561691284,
+        0.06845539063215256
+      ],
+      "rotation_xyzw": [
+        0.14104990875567502,
+        0.2197916970807106,
+        -0.6078423261834001,
+        0.7498828172683716
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/019_pitcher_base_06.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_040_large_marker_07",
+      "prim_path": "/objects/obj_040_large_marker_07",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/040_large_marker.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.4950975179672241,
+        -0.25525379180908203,
+        0.023791486397385597
+      ],
+      "rotation_xyzw": [
+        0.6330578991722424,
+        0.5939321059838131,
+        -0.3636910865916574,
+        0.3379513919353484
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/040_large_marker_07.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_025_mug_08",
+      "prim_path": "/objects/obj_025_mug_08",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/025_mug.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.1515868604183197,
+        0.024850301444530487,
+        0.051562581211328506
+      ],
+      "rotation_xyzw": [
+        0.7252891870765156,
+        0.6231679585574708,
+        -0.24949854778009875,
+        0.15286518633365592
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/025_mug_08.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_011_banana_09",
+      "prim_path": "/objects/obj_011_banana_09",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/011_banana.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.4259859323501587,
+        -0.3327016830444336,
+        0.030431196093559265
+      ],
+      "rotation_xyzw": [
+        0.34481562730056575,
+        0.7319255130263329,
+        0.530531517297759,
+        0.25283104181289645
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/011_banana_09.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_002_master_chef_can_10",
+      "prim_path": "/objects/obj_002_master_chef_can_10",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/002_master_chef_can.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.5717415809631348,
+        -0.15148603916168213,
+        0.06562746316194534
+      ],
+      "rotation_xyzw": [
+        0.030566706398914862,
+        -0.025813487568056466,
+        0.8031971230073738,
+        0.5943683385849
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/002_master_chef_can_10.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_061_foam_brick_11",
+      "prim_path": "/objects/obj_061_foam_brick_11",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/061_foam_brick.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.5409759283065796,
+        -0.08120270818471909,
+        0.058048948645591736
+      ],
+      "rotation_xyzw": [
+        0.6862357924327871,
+        -0.14693081955538367,
+        0.3384076697358832,
+        0.6268748044967651
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/061_foam_brick_11.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_009_gelatin_box_12",
+      "prim_path": "/objects/obj_009_gelatin_box_12",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/009_gelatin_box.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.7087886929512024,
+        -0.2360142320394516,
+        0.02940415032207966
+      ],
+      "rotation_xyzw": [
+        0.2545607061938706,
+        0.9669268680805463,
+        0.015429506895879505,
+        -0.0036344137042759466
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/009_gelatin_box_12.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_024_bowl_13",
+      "prim_path": "/objects/obj_024_bowl_13",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/024_bowl.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.5602593421936035,
+        -0.2724694013595581,
+        0.057702068239450455
+      ],
+      "rotation_xyzw": [
+        0.5870259740772774,
+        -0.5518570298423514,
+        0.20704258063271702,
+        -0.5549663901329042
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/024_bowl_13.obj",
+      "note": "Fill moveit_mesh_path later."
+    },
+    {
+      "id": "obj_035_power_drill_14",
+      "prim_path": "/objects/obj_035_power_drill_14",
+      "usd_asset_path": "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Props/YCB/Axis_Aligned/035_power_drill.usd",
+      "frame_id": "world",
+      "translation_xyz": [
+        0.6093587875366211,
+        -0.31752318143844604,
+        0.08013729006052017
+      ],
+      "rotation_xyzw": [
+        0.13157538709857075,
+        -0.1894901641050822,
+        0.7756094720464218,
+        -0.5875468850135803
+      ],
+      "moveit_mesh_path": "/isaac-sim/corl2025/obj/035_power_drill_14.obj",
+      "note": "Fill moveit_mesh_path later."
+    }
+  ]
+}
