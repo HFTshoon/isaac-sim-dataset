@@ -15,6 +15,8 @@ import argparse
 import json
 import math
 import pathlib
+import random
+import re
 import sys
 from pathlib import Path
 
@@ -41,7 +43,7 @@ def _parse_args() -> argparse.Namespace:
 	parser.add_argument("--robot-prim-path", type=str, default="/Franka")
 	parser.add_argument("--ee-frame", type=str, default="right_gripper")
 	parser.add_argument("--headless", action="store_true")
-	parser.add_argument("--num-directions", type=int, default=50)
+	parser.add_argument("--num-directions", type=int, default=64)
 	parser.add_argument("--min-z", type=float, default=0.0)
 	parser.add_argument("--move-distance", type=float, default=0.15)
 	parser.add_argument("--waypoints", type=int, default=80)
@@ -59,7 +61,7 @@ simulation_app = SimulationApp({"headless": ARGS.headless})
 import carb
 import omni.timeline
 import omni.usd
-from pxr import Gf, Sdf, Usd, UsdGeom, UsdPhysics
+from pxr import Gf, PhysxSchema, Sdf, Usd, UsdGeom, UsdPhysics
 
 from isaacsim.core.api import World
 from isaacsim.core.prims import SingleArticulation
@@ -69,8 +71,8 @@ from isaacsim.robot.manipulators.examples.franka import KinematicsSolver
 
 
 OBJECT_ROOT = "/objects"
-GRASP_LOCAL_OFFSET_M = (0.0, -0.095, 0.0)
-GRASP_LOCAL_RPY_DEG = (-90.0, 0.0, 0.0)
+OBJECT_KEY = "006"
+PREDEFINED_GRASP_POSE_JSON = pathlib.Path(__file__).with_name("predefined_grasp_pose.json")
 GRIPPER_CLOSE_VALUE = 0.005
 GRIPPER_CLOSE_FRAMES = 40
 
@@ -151,12 +153,44 @@ def _set_prim_pose_wxyz(stage: Usd.Stage, prim_path: str, pos: np.ndarray, quat_
 	if not prim.IsValid():
 		return
 	xform = UsdGeom.Xformable(prim)
-	xform.ClearXformOpOrder()
-	t_op = xform.AddTranslateOp()
-	q_op = xform.AddOrientOp()
+	t_op = None
+	q_op = None
+	for op in xform.GetOrderedXformOps():
+		if op.GetOpType() == UsdGeom.XformOp.TypeTranslate and t_op is None:
+			t_op = op
+		elif op.GetOpType() == UsdGeom.XformOp.TypeOrient and q_op is None:
+			q_op = op
+	if t_op is None:
+		t_op = xform.AddTranslateOp()
+	if q_op is None:
+		q_op = xform.AddOrientOp()
 	t_op.Set(Gf.Vec3f(float(pos[0]), float(pos[1]), float(pos[2])))
 	w, x, y, z = quat_wxyz
 	q_op.Set(Gf.Quatf(float(w), float(x), float(y), float(z)))
+
+
+def _set_rigidbody_kinematic(prim: Usd.Prim, enabled: bool) -> None:
+	if not prim.IsValid():
+		return
+	rb = UsdPhysics.RigidBodyAPI.Apply(prim)
+	rb.CreateRigidBodyEnabledAttr(True)
+	rb.CreateKinematicEnabledAttr(bool(enabled))
+
+
+def _set_ccd_for_prim(prim: Usd.Prim, enabled: bool) -> None:
+	if not prim.IsValid():
+		return
+	# CCD attribute is provided by PhysX schema (not UsdPhysics.RigidBodyAPI) in this Isaac Sim version.
+	try:
+		physx_rb = PhysxSchema.PhysxRigidBodyAPI.Apply(prim)
+		physx_rb.CreateEnableCCDAttr(bool(enabled))
+	except Exception:
+		# Fallback for schema/API variation.
+		attr = prim.GetAttribute("physxRigidBody:enableCCD")
+		if not attr or not attr.IsValid():
+			attr = prim.CreateAttribute("physxRigidBody:enableCCD", Sdf.ValueTypeNames.Bool)
+		if attr and attr.IsValid():
+			attr.Set(bool(enabled))
 
 
 def _zero_velocity(prim: Usd.Prim) -> None:
@@ -181,23 +215,76 @@ def _ensure_xform(stage: Usd.Stage, path: str) -> None:
 
 
 def _fibonacci_sphere(n: int, min_z: float = 0.0) -> list[np.ndarray]:
-	golden = (1 + math.sqrt(5)) / 2
-	candidates_needed = max(n * 4, 200)
+	if n <= 0:
+		return []
+
+	# Uniform-on-area sampling on spherical cap z in [min_z, 1].
+	# For a sphere, area density is uniform in z, so choose z linearly,
+	# and distribute azimuth via golden angle.
+	min_z = float(np.clip(min_z, -1.0, 1.0))
+	golden_angle = math.pi * (3.0 - math.sqrt(5.0))
 	result = []
-	for i in range(candidates_needed):
-		theta = 2 * math.pi * i / golden
-		phi = math.acos(max(-1.0, min(1.0, 1.0 - 2.0 * (i + 0.5) / candidates_needed)))
-		x = math.sin(phi) * math.cos(theta)
-		y = math.sin(phi) * math.sin(theta)
-		z = math.cos(phi)
-		if z >= min_z:
-			result.append(np.array([x, y, z], dtype=np.float64))
-		if len(result) >= n:
-			break
+	for i in range(n):
+		z = min_z + (1.0 - min_z) * ((i + 0.5) / n)
+		r_xy = math.sqrt(max(0.0, 1.0 - z * z))
+		theta = i * golden_angle
+		x = r_xy * math.cos(theta)
+		y = r_xy * math.sin(theta)
+		result.append(np.array([x, y, z], dtype=np.float64))
 	return result
 
 
-def _compute_grasp_pose_from_object(stage: Usd.Stage, object_prim_path: str) -> tuple[np.ndarray, np.ndarray]:
+def _load_json_loose(path: pathlib.Path) -> dict:
+	text = path.read_text(encoding="utf-8")
+	# Allow trailing commas in hand-edited json files.
+	text = re.sub(r",\s*([}\]])", r"\1", text)
+	return json.loads(text)
+
+
+def _extract_object_key(value: str) -> str:
+	m = re.search(r"(\d{3})", value or "")
+	if m:
+		return m.group(1)
+	return (value or "").strip()
+
+
+def _select_predefined_grasp_pose(object_key: str) -> tuple[np.ndarray, np.ndarray]:
+	default_offset = np.asarray((0.0, -0.095, 0.0), dtype=np.float64)
+	default_rpy = np.asarray((-90.0, 0.0, 0.0), dtype=np.float64)
+	if not PREDEFINED_GRASP_POSE_JSON.is_file():
+		carb.log_warn(f"Predefined grasp file not found: {PREDEFINED_GRASP_POSE_JSON}. Using defaults.")
+		return default_offset, default_rpy
+
+	try:
+		data = _load_json_loose(PREDEFINED_GRASP_POSE_JSON)
+	except Exception as exc:
+		carb.log_warn(f"Failed to parse predefined grasp file: {exc}. Using defaults.")
+		return default_offset, default_rpy
+
+	keys = [str(k) for k in data.get("key", [])]
+	if object_key not in keys:
+		carb.log_warn(f"object_key '{object_key}' not in predefined key list {keys}. Using defaults.")
+		return default_offset, default_rpy
+
+	poses = data.get(object_key, [])
+	if not isinstance(poses, list) or not poses:
+		carb.log_warn(f"No predefined grasp poses for key '{object_key}'. Using defaults.")
+		return default_offset, default_rpy
+
+	selected = random.choice(poses)
+	local_offset = selected.get("local_offset_m", [0.0, -0.095, 0.0])
+	local_rpy = selected.get("local_rpy_deg", [-90.0, 0.0, 0.0])
+	if len(local_offset) != 3 or len(local_rpy) != 3:
+		carb.log_warn(f"Invalid predefined grasp pose format for key '{object_key}'. Using defaults.")
+		return default_offset, default_rpy
+
+	carb.log_info(
+		f"Using predefined grasp pose for key '{object_key}': offset={local_offset}, rpy_deg={local_rpy}"
+	)
+	return np.asarray(local_offset, dtype=np.float64), np.asarray(local_rpy, dtype=np.float64)
+
+
+def _compute_grasp_pose_from_object(stage: Usd.Stage, object_prim_path: str, object_key: str) -> tuple[np.ndarray, np.ndarray]:
 	obj_prim = stage.GetPrimAtPath(object_prim_path)
 	if not obj_prim.IsValid():
 		raise RuntimeError(f"Invalid object prim: {object_prim_path}")
@@ -206,11 +293,12 @@ def _compute_grasp_pose_from_object(stage: Usd.Stage, object_prim_path: str) -> 
 	obj_q = np.array(_matrix_quat_wxyz(obj_m), dtype=np.float64)
 	obj_q /= np.linalg.norm(obj_q)
 
-	local_offset = Gf.Vec3d(*GRASP_LOCAL_OFFSET_M)
+	grasp_local_offset_m, grasp_local_rpy_deg = _select_predefined_grasp_pose(object_key)
+	local_offset = Gf.Vec3d(*grasp_local_offset_m)
 	grasp_world_pos = np.array(obj_m.Transform(local_offset), dtype=np.float64)
 
 	grasp_local_q = np.array(
-		euler_angles_to_quat(np.deg2rad(np.array(GRASP_LOCAL_RPY_DEG, dtype=np.float64))),
+		euler_angles_to_quat(np.deg2rad(grasp_local_rpy_deg)),
 		dtype=np.float64,
 	)
 	grasp_local_q /= np.linalg.norm(grasp_local_q)
@@ -394,10 +482,12 @@ def main() -> None:
 			scene_data = json.load(f)
 		target_object = scene_data.get("target_object", "")
 		target_prim_path = scene_data.get("target_object_prim_path", f"{OBJECT_ROOT}/{target_object}")
+		grasp_object_key = _extract_object_key(target_object) or OBJECT_KEY
 		object_root = scene_data.get("object_root", OBJECT_ROOT)
 		all_objects_data = scene_data.get("objects", [])
 		carb.log_info(f"  target_object: {target_object}")
 		print(f"  target_object: {target_object}", flush=True)
+		carb.log_info(f"  grasp_object_key: {grasp_object_key}")
 		carb.log_info(f"  target_prim_path: {target_prim_path}")
 		carb.log_info(f"  num_objects: {len(all_objects_data)}")
 
@@ -487,7 +577,7 @@ def main() -> None:
 		# Move to grasp
 		carb.log_info("Computing grasp pose...")
 		print("[GRASP] Computing...", flush=True)
-		grasp_pos, grasp_quat = _compute_grasp_pose_from_object(stage, target_prim_path)
+		grasp_pos, grasp_quat = _compute_grasp_pose_from_object(stage, target_prim_path, grasp_object_key)
 		carb.log_info(f"Grasp pos: {np.round(grasp_pos, 4)}")
 		print(f"[GRASP] Pos: {np.round(grasp_pos, 4)}", flush=True)
 
@@ -510,10 +600,17 @@ def main() -> None:
 		print("[GRIPPER] Closed.", flush=True)
 
 		target_prim = stage.GetPrimAtPath(target_prim_path)
-		if target_prim.IsValid() and target_prim.HasAPI(UsdPhysics.RigidBodyAPI):
-			UsdPhysics.RigidBodyAPI(target_prim).CreateRigidBodyEnabledAttr(False)
-		carb.log_info("Target object physics disabled.")
-		print("[PHYSICS] Target disabled.", flush=True)
+		if target_prim.IsValid():
+			# PhysX does not support kinematic + CCD together.
+			_set_ccd_for_prim(target_prim, False)
+			_set_rigidbody_kinematic(target_prim, True)
+		for obj_data in all_objects_data:
+			if obj_data.get("prim_path") == target_prim_path:
+				continue
+			obj_prim = stage.GetPrimAtPath(obj_data.get("prim_path", ""))
+			_set_ccd_for_prim(obj_prim, True)
+		carb.log_info("Target object set to kinematic (CCD off); CCD enabled for non-target objects.")
+		print("[PHYSICS] Target kinematic (CCD off), non-target CCD on.", flush=True)
 
 		# Compute offset
 		carb.log_info("Computing EE-to-object offset...")
@@ -610,6 +707,8 @@ def main() -> None:
 				carb.log_info(f"[Dir {dir_idx}] Resetting target object...")
 				target_obj_data = next((o for o in all_objects_data if o["prim_path"] == target_prim_path), None)
 				if target_obj_data:
+					_set_rigidbody_kinematic(target_prim, False)
+					_set_ccd_for_prim(target_prim, True)
 					_reset_object_to_saved(stage, target_obj_data)
 					_step(world, 15)
 				_open_gripper(robot, controller)
@@ -624,6 +723,8 @@ def main() -> None:
 				if ik_ok_back:
 					controller.apply_action(ik_action_back)
 					_step(world, ARGS.return_frames)
+					_set_ccd_for_prim(target_prim, False)
+					_set_rigidbody_kinematic(target_prim, True)
 					_close_gripper(robot, controller)
 					for _ in range(GRIPPER_CLOSE_FRAMES + 1):
 						_step(world, 1)
@@ -656,10 +757,7 @@ def main() -> None:
 		output_path.write_text(json.dumps(output_data, indent=2), encoding="utf-8")
 		carb.log_info(f"DONE. Saved tracking data: {output_path}")
 		print(f"[DONE] Tracking saved: {output_path}", flush=True)
-
-		if not ARGS.headless:
-			while simulation_app.is_running():
-				world.step(render=True)
+		carb.log_info("Exiting Isaac Sim after successful move tracking save.")
 
 	except Exception as exc:
 		carb.log_error(f"[01_base_robot_move] Fatal error: {exc}")

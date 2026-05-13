@@ -1,5 +1,7 @@
 __pycache__/
 obj/
+dataset/
+curobo/
 move_effect_vis/
 
 sample_*.usda
