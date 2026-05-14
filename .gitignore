@@ -4,4 +4,7 @@ dataset/
 curobo/
 move_effect_vis/
 
-sample_*.usda
+sample/
+legacy/
+
+imit_checkpoints/
