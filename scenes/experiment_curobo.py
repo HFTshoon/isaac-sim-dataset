@@ -1,22 +1,10 @@
-"""
-01_base_robot_move.py
-
-Loads a pre-built clutter scene produced by 01_base_robot_scene.py, positions the
-Franka at the grasp pose (gripper closed on the target object), then moves it linearly
-in each Fibonacci-sphere direction while tracking all other object displacements.
-
-Usage:
-	./python.sh corl2025/scenes/robot_move_curobo.py \
-		--scene 02 --scene-num 001 --num-directions 50 --move-distance 0.15
-"""
-
 import argparse
 import json
 import math
 import pathlib
 import random
 import re
-import sys
+import traceback
 from pathlib import Path
 
 import numpy as np
@@ -25,7 +13,19 @@ from isaacsim import SimulationApp
 
 SCENE_INFO_PATH = Path(__file__).with_name("scene_info.json")
 REPO_ROOT = Path(__file__).resolve().parents[2]
+WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 JSON_FILENAME = "isaac_objects_for_moveit.json"
+POSSIBLE_JITTER_FILENAME = "possible_jitter.json"
+
+OBJECT_ROOT = "/objects"
+PREDEFINED_GRASP_POSE_JSON = pathlib.Path(__file__).with_name("predefined_grasp_pose.json")
+GRIPPER_CLOSE_VALUE = 0.005
+GRIPPER_CLOSE_FRAMES = 40
+MOVE_SUCCESS_POS_TOL_M = 0.02
+OPEN_SPACE_DESTINATION_X_CANDIDATES = (-0.1, -0.2)
+OPEN_SPACE_DESTINATION_Y_CANDIDATES = (-0.4, -0.3, 0.3, 0.4)
+OPEN_SPACE_DESTINATION_Z_CANDIDATES = (0.3,)
+RESET_FRAMES = 120
 
 
 def _resolve_repo_path(path_str: str) -> Path:
@@ -44,44 +44,36 @@ def _load_scene_info(scene_key: str) -> dict:
 	return scene_info_all[scene_key]
 
 
+def _default_output_path(args: argparse.Namespace) -> Path:
+	idx = 0
+	if args.scene_num is not None:
+		idx = int(args.scene_num)
+	dataset_name = "dataset"
+	output_group = "curobo_withobj" if args.include_target else "curobo"
+	if args.jitter:
+		output_group += "_jit"
+	if scene_info is not None:
+		dataset_name = Path(str(scene_info.get("dataset_root", "dataset"))).name
+	elif scene_json_path is not None:
+		# scene_json_path: <dataset_root>/scene_XXX/isaac_objects_for_moveit.json
+		dataset_name = scene_json_path.parent.parent.name
+	return WORKSPACE_ROOT / "experiment" / output_group / dataset_name / f"scene_{idx:03d}.json"
+
+
 def _parse_args() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(
-		description="Move Franka along Fibonacci-sphere directions while tracking object displacements."
+		description="Run one CuRobo grasp + open-space transfer experiment."
 	)
-	parser.add_argument(
-		"--scene",
-		type=str,
-		default=None,
-		help="Scene key from scene_info.json, e.g. 01 or 02.",
-	)
-	parser.add_argument(
-		"--scene-num",
-		type=str,
-		default=None,
-		help="Scene index inside the dataset root, e.g. 000 or 001.",
-	)
-	parser.add_argument(
-		"--scene-json",
-		type=str,
-		default=None,
-		help="Explicit path to isaac_objects_for_moveit.json. Overrides --scene and --scene-num.",
-	)
-	parser.add_argument(
-		"--base-usd",
-		type=str,
-		default=None,
-		help="Explicit base USD. If omitted, it is derived from --scene.",
-	)
+	parser.add_argument("--scene", type=str, default=None, help="Scene key from scene_info.json, e.g. 01 or 02.")
+	parser.add_argument("--scene-num", type=str, default=None, help="Scene index in dataset root, e.g. 000 or 001.")
+	parser.add_argument("--scene-json", type=str, default=None, help="Explicit path to isaac_objects_for_moveit.json.")
+	parser.add_argument("--base-usd", type=str, default=None, help="Explicit base USD path.")
 	parser.add_argument("--robot-prim-path", type=str, default="/Franka")
 	parser.add_argument("--ee-frame", type=str, default="right_gripper")
 	parser.add_argument("--headless", action="store_true")
-	parser.add_argument("--num-directions", type=int, default=64)
-	parser.add_argument("--min-z", type=float, default=0.0)
-	parser.add_argument("--move-distance", type=float, default=0.15)
-	parser.add_argument("--waypoints", type=int, default=80)
 	parser.add_argument("--steps-per-waypoint", type=int, default=10)
-	parser.add_argument("--settle-frames", type=int, default=100)
-	parser.add_argument("--return-frames", type=int, default=120)
+	parser.add_argument("--include-target", action="store_true", help="Include grasped target as attached collision geometry during open-space planning.")
+	parser.add_argument("--jitter", action="store_true", help="Use jittered grasp orientation from possible_jitter.json.")
 	parser.add_argument("--output-json", type=str, default=None)
 	parser.add_argument("--viewport1-camera", type=str, default="/cameras/sceneCamera")
 	return parser.parse_args()
@@ -108,7 +100,6 @@ if scene_info is not None and ARGS.base_usd is None:
 simulation_app = SimulationApp({"headless": ARGS.headless})
 
 import carb
-import omni.timeline
 import omni.usd
 from pxr import Gf, PhysxSchema, Sdf, Usd, UsdGeom, UsdPhysics
 
@@ -135,49 +126,39 @@ from curobo.util_file import get_robot_configs_path, join_path, load_yaml
 from curobo.wrap.reacher.motion_gen import MotionGen, MotionGenConfig, MotionGenPlanConfig
 
 
-OBJECT_ROOT = "/objects"
-PREDEFINED_GRASP_POSE_JSON = pathlib.Path(__file__).with_name("predefined_grasp_pose.json")
-GRIPPER_CLOSE_VALUE = 0.005
-GRIPPER_CLOSE_FRAMES = 40
-MOVE_SUCCESS_POS_TOL_M = 0.02
-SETUP_OBJECT_POS_TOL_M = 0.01
-MAX_DIRECTION_SETUP_RETRIES = 3
-
-
 def _quat_mul_wxyz(q1: np.ndarray, q2: np.ndarray) -> np.ndarray:
 	w1, x1, y1, z1 = q1
 	w2, x2, y2, z2 = q2
 	return np.array([
-		w1*w2 - x1*x2 - y1*y2 - z1*z2,
-		w1*x2 + x1*w2 + y1*z2 - z1*y2,
-		w1*y2 - x1*z2 + y1*w2 + z1*x2,
-		w1*z2 + x1*y2 - y1*x2 + z1*w2,
+		w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2,
+		w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
+		w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
+		w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2,
 	], dtype=np.float64)
 
 
 def _quat_to_rotmat_wxyz(q: np.ndarray) -> np.ndarray:
 	w, x, y, z = q
 	return np.array([
-		[1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)],
-		[2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)],
-		[2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)],
+		[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+		[2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+		[2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
 	], dtype=np.float64)
 
 
 def _rotmat_to_quat_wxyz(R: np.ndarray) -> np.ndarray:
-	trace = R[0,0] + R[1,1] + R[2,2]
+	trace = R[0, 0] + R[1, 1] + R[2, 2]
 	if trace > 0:
 		s = 0.5 / math.sqrt(trace + 1.0)
-		return np.array([0.25/s, (R[2,1]-R[1,2])*s, (R[0,2]-R[2,0])*s, (R[1,0]-R[0,1])*s], dtype=np.float64)
-	elif R[0,0] > R[1,1] and R[0,0] > R[2,2]:
-		s = 2.0 * math.sqrt(1.0 + R[0,0] - R[1,1] - R[2,2])
-		return np.array([(R[2,1]-R[1,2])/s, 0.25*s, (R[0,1]+R[1,0])/s, (R[0,2]+R[2,0])/s], dtype=np.float64)
-	elif R[1,1] > R[2,2]:
-		s = 2.0 * math.sqrt(1.0 + R[1,1] - R[0,0] - R[2,2])
-		return np.array([(R[0,2]-R[2,0])/s, (R[0,1]+R[1,0])/s, 0.25*s, (R[1,2]+R[2,1])/s], dtype=np.float64)
-	else:
-		s = 2.0 * math.sqrt(1.0 + R[2,2] - R[0,0] - R[1,1])
-		return np.array([(R[1,0]-R[0,1])/s, (R[0,2]+R[2,0])/s, (R[1,2]+R[2,1])/s, 0.25*s], dtype=np.float64)
+		return np.array([0.25 / s, (R[2, 1] - R[1, 2]) * s, (R[0, 2] - R[2, 0]) * s, (R[1, 0] - R[0, 1]) * s], dtype=np.float64)
+	if R[0, 0] > R[1, 1] and R[0, 0] > R[2, 2]:
+		s = 2.0 * math.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2])
+		return np.array([(R[2, 1] - R[1, 2]) / s, 0.25 * s, (R[0, 1] + R[1, 0]) / s, (R[0, 2] + R[2, 0]) / s], dtype=np.float64)
+	if R[1, 1] > R[2, 2]:
+		s = 2.0 * math.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2])
+		return np.array([(R[0, 2] - R[2, 0]) / s, (R[0, 1] + R[1, 0]) / s, 0.25 * s, (R[1, 2] + R[2, 1]) / s], dtype=np.float64)
+	s = 2.0 * math.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1])
+	return np.array([(R[1, 0] - R[0, 1]) / s, (R[0, 2] + R[2, 0]) / s, (R[1, 2] + R[2, 1]) / s, 0.25 * s], dtype=np.float64)
 
 
 def _pose_to_matrix44(pos: np.ndarray, quat_wxyz: np.ndarray) -> np.ndarray:
@@ -210,9 +191,7 @@ def _get_prim_pose_wxyz(stage: Usd.Stage, prim_path: str) -> tuple[np.ndarray, n
 	if not prim.IsValid():
 		raise RuntimeError(f"Prim not found: {prim_path}")
 	m = omni.usd.get_world_transform_matrix(prim)
-	pos = np.array(_matrix_translation(m), dtype=np.float64)
-	quat = np.array(_matrix_quat_wxyz(m), dtype=np.float64)
-	return pos, quat
+	return np.array(_matrix_translation(m), dtype=np.float64), np.array(_matrix_quat_wxyz(m), dtype=np.float64)
 
 
 def _set_prim_pose_wxyz(stage: Usd.Stage, prim_path: str, pos: np.ndarray, quat_wxyz: np.ndarray) -> None:
@@ -247,12 +226,10 @@ def _set_rigidbody_kinematic(prim: Usd.Prim, enabled: bool) -> None:
 def _set_ccd_for_prim(prim: Usd.Prim, enabled: bool) -> None:
 	if not prim.IsValid():
 		return
-	# CCD attribute is provided by PhysX schema (not UsdPhysics.RigidBodyAPI) in this Isaac Sim version.
 	try:
 		physx_rb = PhysxSchema.PhysxRigidBodyAPI.Apply(prim)
 		physx_rb.CreateEnableCCDAttr(bool(enabled))
 	except Exception:
-		# Fallback for schema/API variation.
 		attr = prim.GetAttribute("physxRigidBody:enableCCD")
 		if not attr or not attr.IsValid():
 			attr = prim.CreateAttribute("physxRigidBody:enableCCD", Sdf.ValueTypeNames.Bool)
@@ -281,31 +258,26 @@ def _ensure_xform(stage: Usd.Stage, path: str) -> None:
 		UsdGeom.Xform.Define(stage, path)
 
 
-def _fibonacci_sphere(n: int, min_z: float = 0.0) -> list[np.ndarray]:
-	if n <= 0:
-		return []
-
-	# Uniform-on-area sampling on spherical cap z in [min_z, 1].
-	# For a sphere, area density is uniform in z, so choose z linearly,
-	# and distribute azimuth via golden angle.
-	min_z = float(np.clip(min_z, -1.0, 1.0))
-	golden_angle = math.pi * (3.0 - math.sqrt(5.0))
-	result = []
-	for i in range(n):
-		z = min_z + (1.0 - min_z) * ((i + 0.5) / n)
-		r_xy = math.sqrt(max(0.0, 1.0 - z * z))
-		theta = i * golden_angle
-		x = r_xy * math.cos(theta)
-		y = r_xy * math.sin(theta)
-		result.append(np.array([x, y, z], dtype=np.float64))
-	return result
-
-
 def _load_json_loose(path: pathlib.Path) -> dict:
 	text = path.read_text(encoding="utf-8")
-	# Allow trailing commas in hand-edited json files.
 	text = re.sub(r",\s*([}\]])", r"\1", text)
 	return json.loads(text)
+
+
+def _load_jitter_pose_from_scene(scene_json: Path) -> tuple[np.ndarray, float | None]:
+	jitter_path = scene_json.with_name(POSSIBLE_JITTER_FILENAME)
+	if not jitter_path.is_file():
+		raise FileNotFoundError(f"Jitter requested but file not found: {jitter_path}")
+	data = _load_json_loose(jitter_path)
+	successful = data.get("successful_angles", [])
+	if not isinstance(successful, list) or not successful:
+		raise ValueError(f"Jitter requested but no successful_angles in {jitter_path}")
+	entry = successful[0]
+	rpy = entry.get("jittered_local_rpy_deg")
+	if not isinstance(rpy, list) or len(rpy) != 3:
+		raise ValueError(f"Invalid jittered_local_rpy_deg in {jitter_path}: {entry}")
+	jitter_deg = entry.get("jitter_deg")
+	return np.asarray(rpy, dtype=np.float64), (float(jitter_deg) if jitter_deg is not None else None)
 
 
 def _extract_object_key(value: str) -> str:
@@ -321,116 +293,90 @@ def _select_predefined_grasp_pose(object_key: str) -> tuple[np.ndarray, np.ndarr
 	if not PREDEFINED_GRASP_POSE_JSON.is_file():
 		carb.log_warn(f"Predefined grasp file not found: {PREDEFINED_GRASP_POSE_JSON}. Using defaults.")
 		return default_offset, default_rpy
-
 	try:
 		data = _load_json_loose(PREDEFINED_GRASP_POSE_JSON)
 	except Exception as exc:
 		carb.log_warn(f"Failed to parse predefined grasp file: {exc}. Using defaults.")
 		return default_offset, default_rpy
-
 	keys = [str(k) for k in data.get("key", [])]
 	if object_key not in keys:
 		carb.log_warn(f"object_key '{object_key}' not in predefined key list {keys}. Using defaults.")
 		return default_offset, default_rpy
-
 	poses = data.get(object_key, [])
 	if not isinstance(poses, list) or not poses:
 		carb.log_warn(f"No predefined grasp poses for key '{object_key}'. Using defaults.")
 		return default_offset, default_rpy
-
 	selected = random.choice(poses)
 	local_offset = selected.get("local_offset_m", [0.0, -0.095, 0.0])
 	local_rpy = selected.get("local_rpy_deg", [-90.0, 0.0, 0.0])
 	if len(local_offset) != 3 or len(local_rpy) != 3:
 		carb.log_warn(f"Invalid predefined grasp pose format for key '{object_key}'. Using defaults.")
 		return default_offset, default_rpy
-
-	carb.log_info(
-		f"Using predefined grasp pose for key '{object_key}': offset={local_offset}, rpy_deg={local_rpy}"
-	)
 	return np.asarray(local_offset, dtype=np.float64), np.asarray(local_rpy, dtype=np.float64)
 
 
-def _compute_grasp_pose_from_object(stage: Usd.Stage, object_prim_path: str, object_key: str) -> tuple[np.ndarray, np.ndarray]:
+def _compute_grasp_pose_from_object(
+	stage: Usd.Stage,
+	object_prim_path: str,
+	object_key: str,
+	local_rpy_override_deg: np.ndarray | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
 	obj_prim = stage.GetPrimAtPath(object_prim_path)
 	if not obj_prim.IsValid():
 		raise RuntimeError(f"Invalid object prim: {object_prim_path}")
-
 	obj_m = omni.usd.get_world_transform_matrix(obj_prim)
 	obj_q = np.array(_matrix_quat_wxyz(obj_m), dtype=np.float64)
 	obj_q /= np.linalg.norm(obj_q)
-
 	grasp_local_offset_m, grasp_local_rpy_deg = _select_predefined_grasp_pose(object_key)
+	if local_rpy_override_deg is not None:
+		grasp_local_rpy_deg = np.asarray(local_rpy_override_deg, dtype=np.float64)
 	local_offset = Gf.Vec3d(*grasp_local_offset_m)
 	grasp_world_pos = np.array(obj_m.Transform(local_offset), dtype=np.float64)
-
-	grasp_local_q = np.array(
-		euler_angles_to_quat(np.deg2rad(grasp_local_rpy_deg)),
-		dtype=np.float64,
-	)
+	grasp_local_q = np.array(euler_angles_to_quat(np.deg2rad(grasp_local_rpy_deg)), dtype=np.float64)
 	grasp_local_q /= np.linalg.norm(grasp_local_q)
-
 	grasp_world_q = _quat_mul_wxyz(obj_q, grasp_local_q)
 	grasp_world_q /= np.linalg.norm(grasp_world_q)
 	return grasp_world_pos, grasp_world_q
 
 
-def _open_gripper(robot: SingleArticulation, controller, frames: int = None) -> None:
+def _open_gripper(robot: SingleArticulation, controller, frames: int | None = None) -> None:
 	if frames is None:
-			frames = GRIPPER_CLOSE_FRAMES
-	
+		frames = GRIPPER_CLOSE_FRAMES
 	q_start = robot.get_joint_positions()
 	if q_start is None:
 		return
 	q_start = np.array(q_start, dtype=np.float64, copy=True)
-	
-	# Find finger indices
 	finger_indices = [i for i, name in enumerate(robot.dof_names) if "finger" in name.lower()]
 	if not finger_indices:
 		return
-	
-	# Get current finger positions
 	current_values = [q_start[i] for i in finger_indices]
-	
-	# Gradually open gripper over frames
 	for step in range(frames + 1):
 		alpha = step / max(frames, 1)
 		q = q_start.copy()
 		for i in finger_indices:
 			q[i] = current_values[finger_indices.index(i)] * (1 - alpha) + 0.04 * alpha
 		controller.apply_action(ArticulationAction(joint_positions=q))
-		# Stepping handled by caller
 
 
-def _close_gripper(robot: SingleArticulation, controller, grip_value: float = None, frames: int = None) -> None:
+def _close_gripper(robot: SingleArticulation, controller, grip_value: float | None = None, frames: int | None = None) -> None:
 	if grip_value is None:
-			grip_value = GRIPPER_CLOSE_VALUE
+		grip_value = GRIPPER_CLOSE_VALUE
 	if frames is None:
-			frames = GRIPPER_CLOSE_FRAMES
-	
+		frames = GRIPPER_CLOSE_FRAMES
 	q_start = robot.get_joint_positions()
 	if q_start is None:
 		return
 	q_start = np.array(q_start, dtype=np.float64, copy=True)
-	
-	# Find finger indices
 	finger_indices = [i for i, name in enumerate(robot.dof_names) if "finger" in name.lower()]
 	if not finger_indices:
 		return
-	
-	# Get current finger positions
 	current_values = [q_start[i] for i in finger_indices]
-	
-	# Gradually close gripper over frames
 	for step in range(frames + 1):
 		alpha = step / max(frames, 1)
 		q = q_start.copy()
 		for i in finger_indices:
 			q[i] = current_values[finger_indices.index(i)] * (1 - alpha) + grip_value * alpha
 		controller.apply_action(ArticulationAction(joint_positions=q))
-		# Small step in simulation for smooth closing
-		if step < frames:  # Don't step on last iteration
-			pass  # Stepping handled by caller
 
 
 def _step(world: World, n: int) -> None:
@@ -469,83 +415,36 @@ def _snapshot_objects(stage: Usd.Stage, prim_paths: list[str]) -> list[dict]:
 	return result
 
 
-def _max_snapshot_translation_delta(current_snapshot: list[dict], baseline_snapshot: list[dict]) -> tuple[float, str | None]:
-	baseline_map = {
-		obj["prim_path"]: np.asarray(obj["translation_xyz"], dtype=np.float64)
-		for obj in baseline_snapshot
-		if obj.get("prim_path")
-	}
-	max_delta = 0.0
-	max_path = None
-	for obj in current_snapshot:
-		prim_path = obj.get("prim_path")
-		if prim_path not in baseline_map:
-			continue
-		current_pos = np.asarray(obj["translation_xyz"], dtype=np.float64)
-		delta = float(np.linalg.norm(current_pos - baseline_map[prim_path]))
-		if delta > max_delta:
-			max_delta = delta
-			max_path = prim_path
-	return max_delta, max_path
-
-
-def _reset_object_to_saved(stage: Usd.Stage, obj_data: dict) -> None:
-	prim = stage.GetPrimAtPath(obj_data["prim_path"])
-	if not prim.IsValid():
-		return
-	tx, ty, tz = obj_data["translation_xyz"]
-	qx, qy, qz, qw = obj_data["rotation_xyzw"]
-	xform = UsdGeom.Xformable(prim)
-	xform.ClearXformOpOrder()
-	t_op = xform.AddTranslateOp()
-	q_op = xform.AddOrientOp()
-	t_op.Set(Gf.Vec3f(tx, ty, tz))
-	q_op.Set(Gf.Quatf(qw, qx, qy, qz))
-	_zero_velocity(prim)
-
-
-def _reload_all_objects(
+def _reload_objects_from_usda(
 	stage: Usd.Stage,
-	objects_usda_path: Path,
+	objects_usda: Path,
+	object_root: str,
 	all_objects_data: list[dict],
-	simulation_app,
 ) -> None:
-	"""Delete all object prims and reload them from objects_usda."""
-	# Delete all object prims
-	for obj_data in all_objects_data:
-		prim_path = obj_data.get("prim_path")
-		if not prim_path:
-			continue
-		prim = stage.GetPrimAtPath(prim_path)
-		if prim.IsValid():
-			stage.RemovePrim(prim_path)
-			carb.log_info(f"Deleted prim: {prim_path}")
-	
-	# Reload objects from USD
-	obj_stage = Usd.Stage.Open(str(objects_usda_path))
+	_clear_children(stage, object_root)
+	_ensure_xform(stage, object_root)
+	obj_stage = Usd.Stage.Open(str(objects_usda))
 	if obj_stage is None:
-		raise RuntimeError(f"Failed to reopen objects USDA: {objects_usda_path}")
-	
+		raise RuntimeError(f"Failed to open objects USDA: {objects_usda}")
 	src_layer = obj_stage.GetRootLayer()
 	dst_layer = stage.GetRootLayer()
-	copy_count = 0
 	for obj_data in all_objects_data:
 		src_path = obj_data.get("prim_path")
 		if not src_path:
 			continue
-		try:
-			Sdf.CopySpec(src_layer, src_path, dst_layer, src_path)
-			copy_count += 1
-		except Exception as e:
-			carb.log_warn(f"Failed to recopy prim {src_path}: {e}")
-	
+		Sdf.CopySpec(src_layer, src_path, dst_layer, src_path)
 	del obj_stage
-	carb.log_info(f"Reloaded {copy_count}/{len(all_objects_data)} object prims.")
-	
-	# Update stage
 	for _ in range(30):
 		simulation_app.update()
-	
+
+
+def _open_space_destinations() -> list[np.ndarray]:
+	dests = []
+	for x in OPEN_SPACE_DESTINATION_X_CANDIDATES:
+		for y in OPEN_SPACE_DESTINATION_Y_CANDIDATES:
+			for z in OPEN_SPACE_DESTINATION_Z_CANDIDATES:
+				dests.append(np.array([float(x), float(y), float(z)], dtype=np.float64))
+	return dests
 
 
 def _update_target_transform(stage: Usd.Stage, target_prim_path: str, ee_pos: np.ndarray, ee_quat_wxyz: np.ndarray, obj_in_ee: np.ndarray) -> None:
@@ -595,14 +494,12 @@ def _extract_collision_enabled_world(
 	root_prim = stage.GetPrimAtPath(root_path)
 	if not root_prim.IsValid():
 		return WorldConfig(cuboid=[], mesh=[], sphere=[], cylinder=[], capsule=[])
-
 	xform_cache = UsdGeom.XformCache(Usd.TimeCode.Default())
 	transform = None
 	if reference_prim_path:
 		reference_prim = stage.GetPrimAtPath(reference_prim_path)
 		if reference_prim.IsValid():
 			transform, _ = get_prim_world_pose(xform_cache, reference_prim, inverse=True)
-
 	obstacles = {"cuboid": [], "mesh": [], "sphere": [], "cylinder": [], "capsule": []}
 	for prim in Usd.PrimRange(root_prim):
 		prim_path = str(prim.GetPath())
@@ -643,7 +540,6 @@ def _build_guard_cuboid_from_prim(
 	aligned = bbox.ComputeAlignedRange()
 	if aligned.IsEmpty():
 		return None
-
 	min_pt = aligned.GetMin()
 	max_pt = aligned.GetMax()
 	center_world = Gf.Vec3d(
@@ -658,7 +554,6 @@ def _build_guard_cuboid_from_prim(
 	]
 	if min_dims_xyz is not None:
 		dims = [max(dims[i], float(min_dims_xyz[i])) for i in range(3)]
-
 	center = center_world
 	if reference_prim_path:
 		xform_cache = UsdGeom.XformCache(Usd.TimeCode.Default())
@@ -670,7 +565,6 @@ def _build_guard_cuboid_from_prim(
 				dtype=np.float64,
 			)
 			center = center_h[:3]
-
 	return Cuboid(
 		name=f"{prim_path}_guard",
 		pose=[float(center[0]), float(center[1]), float(center[2]), 1.0, 0.0, 0.0, 0.0],
@@ -720,19 +614,11 @@ def _build_curobo_world(stage: Usd.Stage, robot_prim_path: str, ignore_paths: li
 		ignore_substrings=ignore_paths,
 	).get_collision_check_world()
 	env_guard_world = _build_env_guard_world(stage, robot_prim_path).get_collision_check_world()
-	world_cfg = _merge_world_configs(stage_obstacles, env_collision_world, env_guard_world).get_collision_check_world()
-	carb.log_info(
-		"CuRobo world prepared: "
-		f"other(mesh={len(stage_obstacles.mesh)}, cuboid={len(stage_obstacles.cuboid)}), "
-		f"env_collision(mesh={len(env_collision_world.mesh)}, cuboid={len(env_collision_world.cuboid)}), "
-		f"env_guard(cuboid={len(env_guard_world.cuboid)}), "
-		f"merged(mesh={len(world_cfg.mesh)}, cuboid={len(world_cfg.cuboid)})"
-	)
-	return world_cfg
+	return _merge_world_configs(stage_obstacles, env_collision_world, env_guard_world).get_collision_check_world()
 
 
 def _create_motion_gen(stage: Usd.Stage, robot_prim_path: str, ignore_paths: list[str]) -> MotionGen:
-	setup_curobo_logger("warn")
+	setup_curobo_logger("error")
 	tensor_args = TensorDeviceType()
 	robot_cfg = load_yaml(join_path(get_robot_configs_path(), "franka.yml"))["robot_cfg"]
 	world_cfg = _build_curobo_world(stage, robot_prim_path, ignore_paths)
@@ -751,12 +637,114 @@ def _create_motion_gen(stage: Usd.Stage, robot_prim_path: str, ignore_paths: lis
 		collision_activation_distance=0.02,
 		collision_max_outside_distance=0.05,
 		optimize_dt=True,
-		trajopt_tsteps=max(32, min(ARGS.waypoints, 80)),
+		trajopt_tsteps=80,
 	)
 	motion_gen = MotionGen(motion_gen_config)
 	motion_gen.warmup(enable_graph=True, warmup_js_trajopt=False)
 	motion_gen.update_world(world_cfg)
 	return motion_gen
+
+
+def _check_joint_state_validity(
+	motion_gen: MotionGen,
+	joint_state: CuroboJointState,
+) -> tuple[bool, str | None]:
+	"""Check validity of a joint state using MotionGen constraint checks."""
+	try:
+		valid, status = motion_gen.check_start_state(joint_state)
+		status_str = str(status) if status is not None else None
+		return bool(valid), status_str
+	except Exception as e:
+		carb.log_warn(f"Error checking joint state validity: {e}")
+		return True, None
+
+
+def _get_current_curobo_joint_state(
+	motion_gen: MotionGen,
+	robot: SingleArticulation,
+) -> tuple[CuroboJointState | None, str | None]:
+	sim_js = robot.get_joints_state()
+	if sim_js is None:
+		return None, "robot joint state is None"
+	if np.any(np.isnan(sim_js.positions)):
+		return None, "NaN in robot joint positions"
+	tensor_args = motion_gen.tensor_args
+	cu_js = CuroboJointState(
+		position=tensor_args.to_device(sim_js.positions),
+		velocity=tensor_args.to_device(sim_js.velocities) * 0.0,
+		acceleration=tensor_args.to_device(sim_js.velocities) * 0.0,
+		jerk=tensor_args.to_device(sim_js.velocities) * 0.0,
+		joint_names=robot.dof_names,
+	)
+	return cu_js.get_ordered_joint_state(motion_gen.kinematics.joint_names), None
+
+
+def _set_planning_world_for_grasp(
+	motion_gen: MotionGen,
+	stage: Usd.Stage,
+	robot_prim_path: str,
+	ignore_paths_grasp: list[str],
+) -> None:
+	motion_gen.detach_object_from_robot()
+	world_cfg = _build_curobo_world(stage, robot_prim_path, ignore_paths_grasp)
+	motion_gen.update_world(world_cfg)
+
+
+def _resolve_world_object_name(motion_gen: MotionGen, target_prim_path: str) -> str | None:
+	"""Map a USD prim path to the matching CuRobo world object name."""
+	world_model = getattr(motion_gen, "world_model", None)
+	if world_model is None:
+		return None
+	obstacles = getattr(world_model, "objects", []) or []
+	for obstacle in obstacles:
+		name = getattr(obstacle, "name", None)
+		if not name:
+			continue
+		if name == target_prim_path:
+			return name
+		if name.startswith(target_prim_path + "/"):
+			return name
+		if target_prim_path in name:
+			return name
+	return None
+
+
+def _attach_target_for_planning(
+	motion_gen: MotionGen,
+	stage: Usd.Stage,
+	robot: SingleArticulation,
+	robot_prim_path: str,
+	ignore_paths_with_target: list[str],
+	target_prim_path: str,
+) -> tuple[bool, str | None]:
+	world_cfg = _build_curobo_world(stage, robot_prim_path, ignore_paths_with_target)
+	motion_gen.update_world(world_cfg)
+	cu_js, state_err = _get_current_curobo_joint_state(motion_gen, robot)
+	if cu_js is None:
+		return False, f"failed to read current state for target attachment: {state_err}"
+	resolved_name = _resolve_world_object_name(motion_gen, target_prim_path)
+	if resolved_name is None:
+		world_model = getattr(motion_gen, "world_model", None)
+		available_names = []
+		if world_model is not None:
+			available_names = [getattr(obj, "name", "") for obj in (getattr(world_model, "objects", []) or [])]
+		return False, (
+			f"failed to resolve CuRobo world object name for {target_prim_path}; "
+			f"available names: {' '.join([name for name in available_names if name])}"
+		)
+	try:
+		carb.log_info(f"[IncludeTarget] Attaching world object '{resolved_name}' for target '{target_prim_path}'")
+		print(f"[IncludeTarget] Attaching world object '{resolved_name}' for target '{target_prim_path}'", flush=True)
+		attached = motion_gen.attach_objects_to_robot(
+			cu_js.unsqueeze(0),
+			[resolved_name],
+			surface_sphere_radius=0.005,
+		)
+	except Exception as exc:
+		return False, f"failed to attach target collision object '{resolved_name}': {exc}"
+	if not attached:
+		return False, f"failed to attach target collision object: {resolved_name}"
+	return True, None
 
 
 def _plan_pose_with_curobo(
@@ -771,7 +759,6 @@ def _plan_pose_with_curobo(
 		return False, None, None, "robot joint state is None"
 	if np.any(np.isnan(sim_js.positions)):
 		return False, None, None, "NaN in robot joint positions"
-
 	tensor_args = motion_gen.tensor_args
 	cu_js = CuroboJointState(
 		position=tensor_args.to_device(sim_js.positions),
@@ -781,18 +768,15 @@ def _plan_pose_with_curobo(
 		joint_names=robot.dof_names,
 	)
 	cu_js = cu_js.get_ordered_joint_state(motion_gen.kinematics.joint_names)
-
 	ik_action, ik_ok = ik_solver.compute_inverse_kinematics(
 		target_position=np.asarray(target_position, dtype=np.float64),
 		target_orientation=np.asarray(target_orientation_wxyz, dtype=np.float64),
 	)
 	if not ik_ok or ik_action is None or ik_action.joint_positions is None:
 		return False, None, None, "IK failed for target pose"
-
 	current_q = robot.get_joint_positions()
 	if current_q is None:
 		return False, None, None, "Failed to read current robot joint positions"
-
 	goal_joint_positions_robot_order = np.asarray(current_q, dtype=np.float64).copy()
 	ik_q = np.asarray(ik_action.joint_positions, dtype=np.float64)
 	ik_indices = None
@@ -803,10 +787,7 @@ def _plan_pose_with_curobo(
 			if 0 <= int(joint_i) < goal_joint_positions_robot_order.shape[0]:
 				goal_joint_positions_robot_order[int(joint_i)] = ik_q[local_i]
 	else:
-		arm_joint_ids = [
-			i for i, name in enumerate(robot.dof_names)
-			if ("finger" not in name.lower()) and ("gripper" not in name.lower())
-		]
+		arm_joint_ids = [i for i, name in enumerate(robot.dof_names) if ("finger" not in name.lower()) and ("gripper" not in name.lower())]
 		if ik_q.shape[0] == goal_joint_positions_robot_order.shape[0]:
 			goal_joint_positions_robot_order[:] = ik_q
 		elif ik_q.shape[0] == len(arm_joint_ids):
@@ -814,16 +795,36 @@ def _plan_pose_with_curobo(
 				goal_joint_positions_robot_order[joint_i] = ik_q[local_i]
 		else:
 			return False, None, None, f"IK goal dof mismatch: got {ik_q.shape[0]}"
-
 	name_to_idx = {name: i for i, name in enumerate(robot.dof_names)}
 	goal_joint_positions_curobo = []
 	for name in motion_gen.kinematics.joint_names:
 		if name not in name_to_idx:
 			return False, None, None, f"Missing joint mapping for {name}"
 		goal_joint_positions_curobo.append(goal_joint_positions_robot_order[name_to_idx[name]])
-
 	q_goal = tensor_args.to_device(np.asarray(goal_joint_positions_curobo, dtype=np.float32)).view(1, -1)
 	goal_state = CuroboJointState.from_position(q_goal, joint_names=motion_gen.kinematics.joint_names)
+	
+	# Check world-collision state for start and goal states.
+	start_valid, start_status = _check_joint_state_validity(motion_gen, cu_js)
+	goal_valid, goal_status = _check_joint_state_validity(motion_gen, goal_state)
+	start_state_invalid = not start_valid
+	goal_state_invalid = not goal_valid
+	start_state_in_collision = start_state_invalid and (start_status is not None) and ("colliding with world" in start_status.lower())
+	goal_state_in_collision = goal_state_invalid and (goal_status is not None) and ("colliding with world" in goal_status.lower())
+	
+	if start_state_in_collision:
+		carb.log_warn(f"[StartStateCollision] Current robot state is in collision: {start_status}")
+	if goal_state_in_collision:
+		carb.log_warn(f"[EndStateCollision] Goal state is in collision: {goal_status}")
+
+	if start_state_invalid or goal_state_invalid:
+		invalid_reason_parts = []
+		if start_state_invalid:
+			invalid_reason_parts.append(f"start={start_status}")
+		if goal_state_invalid:
+			invalid_reason_parts.append(f"goal={goal_status}")
+		return False, None, None, "; ".join(invalid_reason_parts)
+	
 	plan_attempts = [
 		("graph+trajopt", MotionGenPlanConfig(enable_graph=True, enable_graph_attempt=2, max_attempts=4, enable_finetune_trajopt=True, time_dilation_factor=0.5)),
 		("trajopt-only", MotionGenPlanConfig(enable_graph=False, enable_graph_attempt=None, max_attempts=6, enable_finetune_trajopt=True, time_dilation_factor=0.6)),
@@ -838,8 +839,16 @@ def _plan_pose_with_curobo(
 			break
 		carb.log_warn(f"CuRobo {attempt_name} failed: {result.status}")
 	if result is None or not result.success.item():
-		return False, None, None, f"CuRobo joint-space planning failed: {last_status}"
-
+		# Determine collision status in failure reason
+		collision_info = ""
+		if start_state_in_collision or goal_state_in_collision:
+			if start_state_in_collision and goal_state_in_collision:
+				collision_info = "[StartAndEndStateCollision]"
+			elif start_state_in_collision:
+				collision_info = "[StartStateCollision]"
+			else:
+				collision_info = "[EndStateCollision]"
+		return False, None, None, f"CuRobo joint-space planning failed: {last_status} {collision_info}".strip()
 	cmd_plan = result.get_interpolated_plan()
 	cmd_plan = motion_gen.get_full_js(cmd_plan)
 	idx_list = []
@@ -914,229 +923,118 @@ def _move_pose_with_curobo(
 	return True, final_ee_pos, None
 
 
-def _move_pose_cartesian(
-	world: World,
-	robot: SingleArticulation,
-	ik_solver: KinematicsSolver,
-	controller,
-	target_position: np.ndarray,
-	target_orientation_wxyz: np.ndarray,
-	stage: Usd.Stage | None = None,
-	target_prim_path: str | None = None,
-	obj_in_ee: np.ndarray | None = None,
-	num_waypoints: int = 40,
-) -> tuple[bool, np.ndarray, str | None]:
-	"""Move end effector linearly in Cartesian space using IK at each waypoint."""
-	ee_pos_current, ee_quat_current = _get_end_effector_pose_wxyz(ik_solver)
-	
-	# Create linear interpolation from current to target
-	waypoints = []
-	for alpha in np.linspace(0.0, 1.0, num_waypoints):
-		pos = ee_pos_current + (target_position - ee_pos_current) * alpha
-		# Keep orientation constant (slerp would be better, but linear path is simpler)
-		waypoints.append((pos, target_orientation_wxyz))
-	
-	for waypoint_pos, waypoint_quat in waypoints:
-		ik_action, ik_ok = ik_solver.compute_inverse_kinematics(
-			target_position=np.asarray(waypoint_pos, dtype=np.float64),
-			target_orientation=np.asarray(waypoint_quat, dtype=np.float64),
-		)
-		if not ik_ok or ik_action is None or ik_action.joint_positions is None:
-			ee_pos_final, _ = ik_solver.compute_end_effector_pose(position_only=True)
-			return False, np.array(ee_pos_final, dtype=np.float64), "IK failed during Cartesian motion"
-		
-		# Map IK result (arm joints only) to full robot joint positions
-		current_q = robot.get_joint_positions()
-		if current_q is None:
-			ee_pos_final, _ = ik_solver.compute_end_effector_pose(position_only=True)
-			return False, np.array(ee_pos_final, dtype=np.float64), "Failed to read robot joint positions"
-		
-		goal_joint_positions = np.asarray(current_q, dtype=np.float64).copy()
-		ik_q = np.asarray(ik_action.joint_positions, dtype=np.float64)
-		ik_indices = getattr(ik_action, "joint_indices", None)
-		
-		if ik_indices is not None:
-			ik_indices = np.asarray(ik_indices, dtype=np.int64)
-			if ik_indices.shape[0] == ik_q.shape[0]:
-				for local_i, joint_i in enumerate(ik_indices):
-					if 0 <= int(joint_i) < goal_joint_positions.shape[0]:
-						goal_joint_positions[int(joint_i)] = ik_q[local_i]
-		else:
-			# Assume IK returns arm joints only; map to arm joint indices
-			arm_joint_ids = [
-				i for i, name in enumerate(robot.dof_names)
-				if ("finger" not in name.lower()) and ("gripper" not in name.lower())
-			]
-			if ik_q.shape[0] == len(arm_joint_ids):
-				for local_i, joint_i in enumerate(arm_joint_ids):
-					goal_joint_positions[joint_i] = ik_q[local_i]
-		
-		action = ArticulationAction(goal_joint_positions)
-		controller.apply_action(action)
-		
-		for _ in range(max(1, ARGS.steps_per_waypoint)):
-			world.step(render=not ARGS.headless)
-			if stage is not None and target_prim_path is not None and obj_in_ee is not None:
-				ee_pos_step, ee_quat_step = _get_end_effector_pose_wxyz(ik_solver)
-				_update_target_transform(stage, target_prim_path, ee_pos_step, ee_quat_step, obj_in_ee)
-	
-	ee_pos_final, _ = ik_solver.compute_end_effector_pose(position_only=True)
-	return True, np.array(ee_pos_final, dtype=np.float64), None
-
-
 def main() -> None:
-	try:
-		# Setup file-based logging (avoid stdout issues with SimulationApp)
-		import logging
-		import tempfile, os
-		log_file = os.path.join(tempfile.gettempdir(), f'robot_move_curobo_{os.getpid()}.log')
-		logging.basicConfig(
-			level=logging.INFO,
-			format='[%(levelname)s] %(message)s',
-			handlers=[logging.FileHandler(log_file, mode='w')],
-			force=True
-		)
-		logger = logging.getLogger()
-		
-		msg = "[01_base_robot_move] Starting..."
-		print(msg, flush=True)
+	if scene_json_path is None:
+		raise ValueError("Provide --scene and --scene-num, or an explicit --scene-json path.")
+	if not scene_json_path.is_file():
+		raise FileNotFoundError(f"Scene JSON not found: {scene_json_path}")
+	if ARGS.base_usd is None:
+		raise ValueError("Unable to derive --base-usd. Pass --scene or specify --base-usd explicitly.")
+
+	with scene_json_path.open(encoding="utf-8") as f:
+		scene_data = json.load(f)
+	target_object = scene_data.get("target_object", "")
+	target_prim_path = scene_data.get("target_object_prim_path", f"{OBJECT_ROOT}/{target_object}")
+	grasp_object_key = _extract_object_key(target_object)
+	object_root = scene_data.get("object_root", OBJECT_ROOT)
+	all_objects_data = scene_data.get("objects", [])
+	objects_usda = scene_json_path.with_name("isaac_objects.usda")
+	if not objects_usda.is_file():
+		raise FileNotFoundError(f"Objects USDA not found: {objects_usda}")
+	jitter_local_rpy_deg = None
+	jitter_deg_used = None
+	if ARGS.jitter:
+		jitter_local_rpy_deg, jitter_deg_used = _load_jitter_pose_from_scene(scene_json_path)
+
+	base_usd = Path(ARGS.base_usd).resolve()
+	if not base_usd.is_file():
+		raise FileNotFoundError(f"Base USD not found: {base_usd}")
+
+	usd_context = omni.usd.get_context()
+	if not usd_context.open_stage(str(base_usd)):
+		raise RuntimeError(f"Failed to open stage: {base_usd}")
+	while usd_context.get_stage_loading_status()[2] > 0:
+		simulation_app.update()
+	_apply_viewport_camera(usd_context)
+	stage = usd_context.get_stage()
+	if stage is None:
+		raise RuntimeError("USD stage unavailable.")
+
+	_reload_objects_from_usda(stage, objects_usda, object_root, all_objects_data)
+
+	target_prim = stage.GetPrimAtPath(target_prim_path)
+	if not target_prim.IsValid():
+		raise RuntimeError(f"Target prim not found: {target_prim_path}")
+
+	world = World(stage_units_in_meters=1.0)
+	robot = world.scene.add(SingleArticulation(prim_path=ARGS.robot_prim_path, name="franka"))
+	world.reset()
+	world.play()
+	_step(world, 30)
+
+	ik_solver = KinematicsSolver(robot, end_effector_frame_name=ARGS.ee_frame)
+	controller = robot.get_articulation_controller()
+	initial_joint_positions = np.array(robot.get_joint_positions(), dtype=np.float64, copy=True)
+	ignore_paths_common = [
+		ARGS.robot_prim_path,
+		ARGS.viewport1_camera,
+		"/background",
+		"/env/small_KLT",
+		"/World/defaultGroundPlane",
+		"/physicsScene",
+		"/cameras",
+	]
+	ignore_paths_grasp = ignore_paths_common + [target_prim_path]
+	ignore_paths_with_target = ignore_paths_common
+	motion_gen = _create_motion_gen(stage, ARGS.robot_prim_path, ignore_paths_grasp)
+
+	all_prim_paths = [obj["prim_path"] for obj in all_objects_data]
+	initial_objects_snapshot = _snapshot_objects(stage, all_prim_paths)
+
+	grasp_pos = np.zeros(3, dtype=np.float64)
+	grasp_quat = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64)
+	sim_result = []
+	open_space_destinations = _open_space_destinations()
+
+	for dest_idx, open_space_destination in enumerate(open_space_destinations):
+		msg = f"[OpenSpace] Destination {dest_idx + 1}/{len(open_space_destinations)} target={open_space_destination.tolist()}"
 		carb.log_info(msg)
-		logger.info(msg)
+		print(msg, flush=True)
 
-		# Load scene JSON
-		if scene_json_path is None:
-			raise ValueError("Provide --scene and --scene-num, or an explicit --scene-json path.")
-		if not scene_json_path.is_file():
-			raise FileNotFoundError(f"Scene JSON not found: {scene_json_path}")
-		carb.log_info(f"Loading scene JSON: {scene_json_path}")
-		print(f"[LOAD] Scene JSON: {scene_json_path}", flush=True)
-		
-		with scene_json_path.open(encoding="utf-8") as f:
-			scene_data = json.load(f)
-		target_object = scene_data.get("target_object", "")
-		target_prim_path = scene_data.get("target_object_prim_path", f"{OBJECT_ROOT}/{target_object}")
-		grasp_object_key = _extract_object_key(target_object)
-		object_root = scene_data.get("object_root", OBJECT_ROOT)
-		all_objects_data = scene_data.get("objects", [])
-		carb.log_info(f"  target_object: {target_object}")
-		print(f"  target_object: {target_object}", flush=True)
-		carb.log_info(f"  grasp_object_key: {grasp_object_key}")
-		carb.log_info(f"  target_prim_path: {target_prim_path}")
-		carb.log_info(f"  num_objects: {len(all_objects_data)}")
+		# Reset robot and objects before each destination attempt.
+		controller.apply_action(ArticulationAction(joint_positions=initial_joint_positions))
+		_step(world, RESET_FRAMES)
+		_reload_objects_from_usda(stage, objects_usda, object_root, all_objects_data)
+		_step(world, 30)
+		if ARGS.include_target:
+			_set_planning_world_for_grasp(motion_gen, stage, ARGS.robot_prim_path, ignore_paths_grasp)
 
-		objects_usda = scene_json_path.with_name("isaac_objects.usda")
-		if not objects_usda.is_file():
-			raise FileNotFoundError(f"Objects USDA not found: {objects_usda}")
-
-		# Open base USD
-		if ARGS.base_usd is None:
-			raise ValueError("Unable to derive --base-usd. Pass --scene or specify --base-usd explicitly.")
-		base_usd = Path(ARGS.base_usd).resolve()
-		if not base_usd.is_file():
-			raise FileNotFoundError(f"Base USD not found: {base_usd}")
-		carb.log_info(f"Opening base USD: {base_usd}")
-		print(f"[USD] Opening: {base_usd}", flush=True)
-		
-		usd_context = omni.usd.get_context()
-		if not usd_context.open_stage(str(base_usd)):
-			raise RuntimeError(f"Failed to open stage: {base_usd}")
-		carb.log_info("Waiting for base USD to load...")
-		print("[USD] Waiting for load...", flush=True)
-		while usd_context.get_stage_loading_status()[2] > 0:
-			simulation_app.update()
-		carb.log_info("Base USD loaded.")
-		print("[USD] Loaded.", flush=True)
-
-		_apply_viewport_camera(usd_context)
-
-		stage = usd_context.get_stage()
-		if stage is None:
-			raise RuntimeError("USD stage unavailable.")
-
-		# Clear and load objects
-		carb.log_info(f"Clearing existing objects under {object_root}...")
-		print(f"[CLEAR] Objects under {object_root}", flush=True)
-		_clear_children(stage, object_root)
-		_ensure_xform(stage, object_root)
-
-		carb.log_info(f"Opening objects USDA: {objects_usda}")
-		print(f"[LOAD] Objects: {objects_usda}", flush=True)
-		obj_stage = Usd.Stage.Open(str(objects_usda))
-		if obj_stage is None:
-			raise RuntimeError(f"Failed to open objects USDA: {objects_usda}")
-
-		src_layer = obj_stage.GetRootLayer()
-		dst_layer = stage.GetRootLayer()
-		carb.log_info(f"Copying {len(all_objects_data)} object prims...")
-		print(f"[COPY] Prims: {len(all_objects_data)}", flush=True)
-		copy_count = 0
-		for i, obj_data in enumerate(all_objects_data):
-			src_path = obj_data.get("prim_path")
-			if not src_path:
-				continue
-			try:
-				Sdf.CopySpec(src_layer, src_path, dst_layer, src_path)
-				copy_count += 1
-			except Exception as e:
-				carb.log_warn(f"Failed to copy prim {src_path}: {e}")
-		carb.log_info(f"Copied {copy_count}/{len(all_objects_data)} object prims.")
-		print(f"[COPY] Done: {copy_count}/{len(all_objects_data)}", flush=True)
-		del obj_stage
-
-		carb.log_info("Updating stage...")
-		print("[STAGE] Updating...", flush=True)
-		for _ in range(30):
-			simulation_app.update()
+		trial_ik_success = False
+		trial_move_success = False
+		trial_objects_after = _snapshot_objects(stage, all_prim_paths)
 
 		target_prim = stage.GetPrimAtPath(target_prim_path)
 		if not target_prim.IsValid():
-			carb.log_error(f"Target prim not found: {target_prim_path}")
-			raise RuntimeError(f"Target prim not found: {target_prim_path}")
-		carb.log_info(f"Target prim validated: {target_prim_path}")
-		print(f"[VALID] Target prim: {target_prim_path}", flush=True)
+			carb.log_warn(f"Target prim not found for destination {dest_idx + 1}: {target_prim_path}")
+			sim_result.append({
+				"destination": open_space_destination.tolist(),
+				"ik_success": False,
+				"move_success": False,
+				"failure_reason": "Target prim not found",
+				"objects_after": trial_objects_after,
+			})
+			continue
 
-		# World + robot
-		carb.log_info("Creating World and adding robot...")
-		print("[WORLD] Creating...", flush=True)
-		world = World(stage_units_in_meters=1.0)
-		robot = world.scene.add(SingleArticulation(prim_path=ARGS.robot_prim_path, name="franka"))
-		world.reset()
-		world.play()
-		_step(world, 30)
-		carb.log_info("World created.")
-		print("[WORLD] Created.", flush=True)
-
-		ik_solver = KinematicsSolver(robot, end_effector_frame_name=ARGS.ee_frame)
-		controller = robot.get_articulation_controller()
-		
-		# Save initial joint positions (before grasp)
-		initial_joint_positions = np.array(robot.get_joint_positions(), dtype=np.float64, copy=True)
-		carb.log_info(f"Initial joint positions saved: {np.round(initial_joint_positions, 4)}")
-		
-		ignore_paths = [
-			ARGS.robot_prim_path,
+		grasp_pos, grasp_quat = _compute_grasp_pose_from_object(
+			stage,
 			target_prim_path,
-			ARGS.viewport1_camera,
-			"/background",
-			"/env/small_KLT",
-			"/World/defaultGroundPlane",
-			"/physicsScene",
-			"/cameras",
-		]
-		motion_gen = _create_motion_gen(stage, ARGS.robot_prim_path, ignore_paths)
-
-		# Move to grasp
-		carb.log_info("Computing grasp pose...")
-		print("[GRASP] Computing...", flush=True)
-		grasp_pos, grasp_quat = _compute_grasp_pose_from_object(stage, target_prim_path, grasp_object_key)
-		carb.log_info(f"Grasp pos: {np.round(grasp_pos, 4)}")
-		print(f"[GRASP] Pos: {np.round(grasp_pos, 4)}", flush=True)
-
+			grasp_object_key,
+			local_rpy_override_deg=jitter_local_rpy_deg,
+		)
 		_open_gripper(robot, controller)
-		for _ in range(GRIPPER_CLOSE_FRAMES + 1):
-			_step(world, 1)
+		_step(world, GRIPPER_CLOSE_FRAMES + 1)
 
-		grasp_move_ok, _, grasp_failure_reason = _move_pose_with_curobo(
+		grasp_ok, _, grasp_reason = _move_pose_with_curobo(
 			world=world,
 			motion_gen=motion_gen,
 			robot=robot,
@@ -1145,20 +1043,23 @@ def main() -> None:
 			target_position=grasp_pos,
 			target_orientation_wxyz=grasp_quat,
 		)
-		if not grasp_move_ok:
-			raise RuntimeError(f"CuRobo failed for initial grasp pose: {grasp_failure_reason}")
-		carb.log_info("CuRobo reached initial grasp pose.")
-		print("[GRASP] CuRobo grasp pose reached.", flush=True)
+		if not grasp_ok:
+			carb.log_warn(f"[OpenSpace] Grasp failed for destination {dest_idx + 1}: {grasp_reason}")
+			trial_objects_after = _snapshot_objects(stage, all_prim_paths)
+			sim_result.append({
+				"destination": open_space_destination.tolist(),
+				"ik_success": False,
+				"move_success": False,
+				"failure_reason": grasp_reason,
+				"objects_after": trial_objects_after,
+			})
+			continue
 
 		_close_gripper(robot, controller)
-		for _ in range(GRIPPER_CLOSE_FRAMES + 1):
-			_step(world, 1)
-		carb.log_info("Gripper closed.")
-		print("[GRIPPER] Closed.", flush=True)
+		_step(world, GRIPPER_CLOSE_FRAMES + 1)
 
 		target_prim = stage.GetPrimAtPath(target_prim_path)
 		if target_prim.IsValid():
-			# PhysX does not support kinematic + CCD together.
 			_set_ccd_for_prim(target_prim, False)
 			_set_rigidbody_kinematic(target_prim, True)
 		for obj_data in all_objects_data:
@@ -1166,225 +1067,100 @@ def main() -> None:
 				continue
 			obj_prim = stage.GetPrimAtPath(obj_data.get("prim_path", ""))
 			_set_ccd_for_prim(obj_prim, True)
-		carb.log_info("Target object set to kinematic (CCD off); CCD enabled for non-target objects.")
-		print("[PHYSICS] Target kinematic (CCD off), non-target CCD on.", flush=True)
 
-		# Compute offset
-		carb.log_info("Computing EE-to-object offset...")
 		ee_pos_init, ee_quat_init = _get_end_effector_pose_wxyz(ik_solver)
-
 		obj_pos_init, obj_quat_init = _get_prim_pose_wxyz(stage, target_prim_path)
+		obj_in_ee = np.linalg.inv(_pose_to_matrix44(ee_pos_init, ee_quat_init)) @ _pose_to_matrix44(obj_pos_init, obj_quat_init)
 
-		T_ee_init = _pose_to_matrix44(ee_pos_init, ee_quat_init)
-		T_obj_init = _pose_to_matrix44(obj_pos_init, obj_quat_init)
-		obj_in_ee = np.linalg.inv(T_ee_init) @ T_obj_init
-
-		carb.log_info(f"EE init pos: {np.round(ee_pos_init, 4)}")
-		carb.log_info(f"Obj init pos: {np.round(obj_pos_init, 4)}")
-
-		# Prepare
-		all_prim_paths = [obj["prim_path"] for obj in all_objects_data]
-		initial_objects_snapshot = _snapshot_objects(stage, all_prim_paths)
-		initial_non_target_snapshot = [
-			obj for obj in initial_objects_snapshot
-			if obj.get("prim_path") != target_prim_path
-		]
-		non_target_prim_paths = [
-			path for path in all_prim_paths
-			if path != target_prim_path
-		]
-
-		fib_directions = sorted(
-			_fibonacci_sphere(ARGS.num_directions, min_z=ARGS.min_z),
-			key=lambda d: float(d[2]),
-			reverse=True,
-		)
-		carb.log_info(f"Generated {len(fib_directions)} Fibonacci-sphere directions")
-		print(f"[FIB] Directions: {len(fib_directions)}", flush=True)
-
-		direction_results = []
-
-		# Motion loop
-		for dir_idx, direction in enumerate(fib_directions):
-			for setup_attempt in range(MAX_DIRECTION_SETUP_RETRIES):
-				fetch_msg = f"[Fetching] Dir {dir_idx}"
-				if setup_attempt > 0:
-					fetch_msg += f" Retry {setup_attempt}"
-				print(fetch_msg, flush=True)
-				carb.log_info(fetch_msg)
-				carb.log_info(f"[{dir_idx + 1}/{len(fib_directions)}] direction={np.round(direction, 4)}")
-
-				# Reset: Move robot to initial pose first
-				controller.apply_action(ArticulationAction(joint_positions=initial_joint_positions))
-				_step(world, ARGS.return_frames)
-				carb.log_info(f"[Dir {dir_idx}] Robot returned to initial pose.")
-				
-				# Delete and reload all objects
-				_reload_all_objects(stage, objects_usda, all_objects_data, simulation_app)
-				carb.log_info(f"[Dir {dir_idx}] All objects reloaded.")
-				
-				# Reinitialize physics for objects
-				_step(world, 30)
-
-				# Recompute grasp pose from current target object transform after reload.
-				grasp_pos_curr, grasp_quat_curr = _compute_grasp_pose_from_object(
-					stage,
-					target_prim_path,
-					grasp_object_key,
-				)
-				
-				# Move robot to grasp pose (CuRobo with collision avoidance)
-				grasp_move_ok, _, grasp_failure_reason = _move_pose_with_curobo(
-					world=world,
-					motion_gen=motion_gen,
-					robot=robot,
-					ik_solver=ik_solver,
-					controller=controller,
-					target_position=grasp_pos_curr,
-					target_orientation_wxyz=grasp_quat_curr,
-				)
-				if not grasp_move_ok:
-					carb.log_warn(f"[Dir {dir_idx}] Failed to move to grasp pose: {grasp_failure_reason}")
-					direction_results.append({
-						"index": dir_idx,
-						"direction": direction.tolist(),
-						"ik_success": False,
-						"move_success": False,
-						"failure_reason": f"Grasp pose motion failed: {grasp_failure_reason}",
-						"objects_before": _snapshot_objects(stage, all_prim_paths),
-						"objects_after": _snapshot_objects(stage, all_prim_paths),
-					})
-					break
-				carb.log_info(f"[Dir {dir_idx}] Robot reached grasp pose.")
-				
-				# Close gripper
-				_close_gripper(robot, controller)
-				for _ in range(GRIPPER_CLOSE_FRAMES + 1):
-					_step(world, 1)
-
-				current_non_target_snapshot = _snapshot_objects(stage, non_target_prim_paths)
-				setup_position_error, drift_prim_path = _max_snapshot_translation_delta(
-					current_non_target_snapshot,
-					initial_non_target_snapshot,
-				)
-				if setup_position_error > SETUP_OBJECT_POS_TOL_M:
-					carb.log_warn(
-						f"[Dir {dir_idx}] Setup disturbed objects before push. "
-						f"max_error={setup_position_error:.4f}m tol={SETUP_OBJECT_POS_TOL_M:.4f}m "
-						f"prim={drift_prim_path}"
-					)
-					if setup_attempt + 1 < MAX_DIRECTION_SETUP_RETRIES:
-						continue
-					direction_results.append({
-						"index": dir_idx,
-						"direction": direction.tolist(),
-						"ik_success": False,
-						"move_success": False,
-						"failure_reason": (
-							f"Setup disturbed objects: max drift {setup_position_error:.4f}m "
-							f"at {drift_prim_path}"
-						),
-						"objects_before": current_non_target_snapshot,
-						"objects_after": current_non_target_snapshot,
-					})
-					break
-				
-				# Prepare target object as kinematic
-				target_prim = stage.GetPrimAtPath(target_prim_path)
-				if target_prim.IsValid():
-					_set_ccd_for_prim(target_prim, False)
-					_set_rigidbody_kinematic(target_prim, True)
-				ee_pos_grasp, ee_quat_grasp = _get_end_effector_pose_wxyz(ik_solver)
-				_update_target_transform(stage, target_prim_path, ee_pos_grasp, ee_quat_grasp, obj_in_ee)
-				_step(world, 10)
-
-				objects_before = _snapshot_objects(stage, all_prim_paths)
-				target_move_pos = grasp_pos_curr + direction * ARGS.move_distance
-				
-				# Use Cartesian motion for pushing
-				success, final_ee_pos, failure_reason = _move_pose_cartesian(
-					world=world,
-					robot=robot,
-					ik_solver=ik_solver,
-					controller=controller,
-					target_position=target_move_pos,
-					target_orientation_wxyz=ee_quat_grasp,
-					stage=stage,
-					target_prim_path=target_prim_path,
-					obj_in_ee=obj_in_ee,
-				)
-
-				if not success:
-					carb.log_warn(f"[Dir {dir_idx}] Cartesian move failed: {failure_reason}")
-					direction_results.append({
-						"index": dir_idx,
-						"direction": direction.tolist(),
-						"ik_success": False,
-						"move_success": False,
-						"failure_reason": failure_reason,
-						"objects_before": objects_before,
-						"objects_after": _snapshot_objects(stage, all_prim_paths),
-					})
-					break
-
-				_step(world, ARGS.settle_frames)
-				position_error = float(np.linalg.norm(final_ee_pos - target_move_pos))
-				move_success = position_error <= MOVE_SUCCESS_POS_TOL_M
-				if not move_success:
-					carb.log_warn(
-						f"[Dir {dir_idx}] Target not reached. "
-						f"error={position_error:.4f}m tol={MOVE_SUCCESS_POS_TOL_M:.4f}m"
-					)
-				objects_after = _snapshot_objects(stage, all_prim_paths)
-				direction_results.append({
-					"index": dir_idx,
-					"direction": direction.tolist(),
-					"ik_success": True,
-					"move_success": move_success,
-					"start_position": grasp_pos_curr.tolist(),
-					"target_position": target_move_pos.tolist(),
-					"end_position": final_ee_pos.tolist(),
-					"position_error_m": position_error,
-					"objects_before": objects_before,
-					"objects_after": objects_after,
+		if ARGS.include_target:
+			attach_ok, attach_reason = _attach_target_for_planning(
+				motion_gen=motion_gen,
+				stage=stage,
+				robot=robot,
+				robot_prim_path=ARGS.robot_prim_path,
+				ignore_paths_with_target=ignore_paths_with_target,
+				target_prim_path=target_prim_path,
+			)
+			if not attach_ok:
+				trial_objects_after = _snapshot_objects(stage, all_prim_paths)
+				sim_result.append({
+					"destination": open_space_destination.tolist(),
+					"ik_success": False,
+					"move_success": False,
+					"failure_reason": attach_reason,
+					"objects_after": trial_objects_after,
 				})
-				carb.log_info(f"[Dir {dir_idx}] Done. EE final pos: {np.round(final_ee_pos, 4)}")
-				break
+				continue
 
-		# Save
-		carb.log_info("Pausing simulation...")
-		timeline = omni.timeline.get_timeline_interface()
-		timeline.pause()
+		open_ok, final_ee_pos, open_reason = _move_pose_with_curobo(
+			world=world,
+			motion_gen=motion_gen,
+			robot=robot,
+			ik_solver=ik_solver,
+			controller=controller,
+			target_position=open_space_destination,
+			target_orientation_wxyz=ee_quat_init,
+			stage=stage,
+			target_prim_path=target_prim_path,
+			obj_in_ee=obj_in_ee,
+		)
 
-		output_path = Path(ARGS.output_json) if ARGS.output_json else scene_json_path.with_name("motion_tracking.json")
-		output_data = {
-			"scene_json": str(scene_json_path),
-			"target_object": target_object,
-			"target_object_prim_path": target_prim_path,
-			"grasp_position": grasp_pos.tolist(),
-			"grasp_orientation_wxyz": grasp_quat.tolist(),
-			"num_directions": len(fib_directions),
-			"move_distance": ARGS.move_distance,
-			"move_success_pos_tol": MOVE_SUCCESS_POS_TOL_M,
-			"initial_objects": initial_objects_snapshot,
-			"directions": direction_results,
-		}
-		carb.log_info(f"Saving tracking data to: {output_path}")
-		print(f"[SAVE] Tracking: {output_path}", flush=True)
-		output_path.write_text(json.dumps(output_data, indent=2), encoding="utf-8")
-		carb.log_info(f"DONE. Saved tracking data: {output_path}")
-		print(f"[DONE] Tracking saved: {output_path}", flush=True)
-		carb.log_info("Exiting Isaac Sim after successful move tracking save.")
+		trial_ik_success = bool(open_ok)
+		trial_objects_after = _snapshot_objects(stage, all_prim_paths)
+		if not open_ok:
+			carb.log_warn(f"[OpenSpace] Move failed for destination {dest_idx + 1}: {open_reason}")
+			sim_result.append({
+				"destination": open_space_destination.tolist(),
+				"ik_success": trial_ik_success,
+				"move_success": False,
+				"failure_reason": open_reason,
+				"objects_after": trial_objects_after,
+			})
+			continue
 
-	except Exception as exc:
-		carb.log_error(f"[01_base_robot_move] Fatal error: {exc}")
-		import traceback
-		carb.log_error(traceback.format_exc())
-		raise
+		pos_error = float(np.linalg.norm(final_ee_pos - open_space_destination))
+		trial_move_success = pos_error <= MOVE_SUCCESS_POS_TOL_M
+		if trial_move_success:
+			carb.log_info(f"[OpenSpace] Success for destination {dest_idx + 1}, pos_error={pos_error:.4f}")
+		else:
+			carb.log_warn(f"[OpenSpace] Reached destination {dest_idx + 1} but move_success false, pos_error={pos_error:.4f}")
+
+		sim_result.append({
+			"destination": open_space_destination.tolist(),
+			"ik_success": trial_ik_success,
+			"move_success": trial_move_success,
+			"failure_reason": None,
+			"objects_after": trial_objects_after,
+		})
+
+	if ARGS.output_json:
+		output_path = _resolve_repo_path(ARGS.output_json)
+	else:
+		output_path = _default_output_path(ARGS)
+	output_path.parent.mkdir(parents=True, exist_ok=True)
+
+	output_data = {
+		"scene_json": str(scene_json_path),
+		"target_object": target_object,
+		"target_object_prim_path": target_prim_path,
+		"jitter_enabled": bool(ARGS.jitter),
+		"jitter_deg_used": jitter_deg_used,
+		"jitter_local_rpy_deg": jitter_local_rpy_deg.tolist() if jitter_local_rpy_deg is not None else None,
+		"grasp_position": grasp_pos.tolist(),
+		"grasp_orientation_wxyz": grasp_quat.tolist(),
+		"initial_objects": initial_objects_snapshot,
+		"sim_result": sim_result,
+	}
+	output_path.write_text(json.dumps(output_data, indent=2), encoding="utf-8")
+	print(f"[DONE] Saved experiment result: {output_path}", flush=True)
 
 
 if __name__ == "__main__":
 	try:
 		main()
+	except Exception as exc:
+		print(f"[ERROR] experiment_curobo failed: {exc}", flush=True)
+		traceback.print_exc()
+		raise
 	finally:
 		simulation_app.close()
