@@ -2,6 +2,7 @@ __pycache__/
 obj/
 dataset/
 curobo/
+experiment/
 move_effect_vis/
 
 sample/
